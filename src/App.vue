@@ -1,30 +1,30 @@
 <template>
   <div class="poker-game">
     <h1 class="game-title">德州扑克</h1>
-    
+
     <div v-if="!gameStarted" class="start-screen">
       <button @click="startGame" class="start-button">开始游戏</button>
     </div>
-    
+
     <!-- 游戏控制面板始终显示 -->
-    <GameControls 
-      :show-gto-debug="showGTODebug"
+    <GameControls
+      v-if="gameStarted"
       :ai-difficulty="aiDifficulty"
       :available-difficulties="availableDifficulties"
       @reset-game="resetGame"
       @toggle-gto-debug="toggleGTODebug"
       @set-ai-difficulty="setAIDifficulty"
     />
-    
+
     <!-- AI调试面板始终显示 -->
-    <AIDebugPanel 
-      :show-gto-debug="showGTODebug"
+    <AIDebugPanel
+      :show-g-t-o-debug="showGTODebug"
       :gto-debug-info="gtoDebugInfo"
       :ai-engine-name="aiEngine?.config?.name || 'AI引擎'"
     />
-    
+
     <div v-if="gameStarted">
-      <GameTable 
+      <GameTable
         :community-cards="communityCards"
         :opponent-chips="opponentChips"
         :opponent-bet="opponentBet"
@@ -73,7 +73,7 @@ export default {
     // 创建游戏状态和逻辑
     const gameState = createGameState()
     const gameLogic = createGameLogic(gameState)
-    
+
     // 从gameState解构所有需要的状态
     const {
       gameStarted,
@@ -103,7 +103,7 @@ export default {
       playerWinRate,
       handStrength
     } = gameState
-    
+
     // 从gameLogic解构所有需要的方法
     const {
       startGame,
@@ -114,14 +114,14 @@ export default {
       toggleGTODebug,
       opponentAction
     } = gameLogic
-    
+
     // 将gameLogic暴露到window对象上，供resetGameState调用
     window.gameLogic = {
       opponentAction
     }
-    
 
-    
+
+
     return {
       gameStarted,
       showdown,
