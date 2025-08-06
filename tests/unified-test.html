@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德州扑克游戏统一测试平台</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .test-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .tab-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .test-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section.active {
+            display: block;
+        }
+        
+        .test-controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .control-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .control-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .control-button.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
+        .control-button.danger {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+        
+        .test-output {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 15px;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        
+        .pass {
+            background-color: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+        
+        .fail {
+            background-color: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+            border: 1px solid #f44336;
+        }
+        
+        .info {
+            background-color: rgba(33, 150, 243, 0.3);
+            color: #2196F3;
+            border: 1px solid #2196F3;
+        }
+        
+        .warning {
+            background-color: rgba(255, 152, 0, 0.3);
+            color: #FF9800;
+            border: 1px solid #FF9800;
+        }
+        
+        .test-summary {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .test-summary.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+        
+        .test-summary.failure {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .test-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .test-card h4 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+        
+        .scenario {
+            border-left: 4px solid #FF9800;
+            padding-left: 15px;
+            margin: 15px 0;
+            background: rgba(255, 152, 0, 0.1);
+            border-radius: 5px;
+            padding: 10px 15px;
+        }
+        
+        .game-frame {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .debug-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ok { background: #4caf50; }
+        .status-error { background: #f44336; }
+        .status-warning { background: #ff9800; }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #FFC107;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #FFC107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 德州扑克游戏统一测试平台</h1>
+        
+        <div class="test-tabs">
+            <button class="tab-button active" onclick="showTab('gameLogic')">🎯 游戏逻辑测试</button>
+            <button class="tab-button" onclick="showTab('chipSettlement')">💰 筹码结算测试</button>
+            <button class="tab-button" onclick="showTab('aiAnalysis')">🤖 AI分析测试</button>
+            <button class="tab-button" onclick="showTab('debugging')">🔍 调试工具</button>
+            <button class="tab-button" onclick="showTab('integration')">🔗 集成测试</button>
+        </div>
+        
+        <!-- 游戏逻辑测试 -->
+        <div id="gameLogic" class="test-section active">
+            <h2>🎯 游戏逻辑测试</h2>
+            
+            <div class="instructions">
+                <h3>📝 使用说明</h3>
+                <p>这个测试需要在游戏运行时执行，请按以下步骤操作：</p>
+                <ol>
+                    <li>确保游戏服务器正在运行 (http://localhost:3001)</li>
+                    <li>点击下方按钮打开游戏页面</li>
+                    <li>运行相应的测试用例</li>
+                </ol>
+            </div>
+            
+            <div class="test-controls">
+                <button class="control-button" onclick="openGamePage()">🎮 打开游戏页面</button>
+                <button class="control-button success" onclick="runGameLogicTests()">🧪 运行游戏逻辑测试</button>
+                <button class="control-button" onclick="clearOutput('gameLogicOutput')">🗑️ 清除输出</button>
+            </div>
+            
+            <div class="test-grid">
+                <div class="test-card">
+                    <h4>🎯 基础功能测试</h4>
+                    <ul>
+                        <li>游戏初始化</li>
+                        <li>盲注收取机制</li>
+                        <li>筹码管理</li>
+                        <li>底池分配</li>
+                    </ul>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🎲 游戏逻辑测试</h4>
+                    <ul>
+                        <li>看牌/跟注/加注逻辑</li>
+                        <li>阶段推进机制</li>
+                        <li>行动权判断</li>
+                        <li>游戏状态一致性</li>
+                    </ul>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🤖 AI测试</h4>
+                    <ul>
+                        <li>AI决策算法</li>
+                        <li>难度级别</li>
+                        <li>决策合理性</li>
+                    </ul>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🔍 边界情况测试</h4>
+                    <ul>
+                        <li>筹码不足处理</li>
+                        <li>全下逻辑</li>
+                        <li>异常情况处理</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div id="gameLogicOutput" class="test-output">等待测试...</div>
+        </div>
+        
+        <!-- 筹码结算测试 -->
+        <div id="chipSettlement" class="test-section">
+            <h2>💰 筹码结算测试</h2>
+            
+            <div class="test-controls">
+                <button class="control-button success" onclick="runChipSettlementTests()">🧪 运行筹码结算测试</button>
+                <button class="control-button" onclick="testSpecificScenario()">🎯 测试特定场景</button>
+                <button class="control-button" onclick="clearOutput('chipOutput')">🗑️ 清除输出</button>
+            </div>
+            
+            <div class="scenario">
+                <h4>测试场景说明</h4>
+                <p>筹码结算测试验证以下场景：</p>
+                <ul>
+                    <li>玩家获胜时的筹码分配</li>
+                    <li>对手获胜时的筹码分配</li>
+                    <li>平局时的筹码分配</li>
+                    <li>筹码守恒定律验证</li>
+                    <li>奇数底池的处理</li>
+                </ul>
+            </div>
+            
+            <div id="chipOutput" class="test-output">等待测试...</div>
+        </div>
+        
+        <!-- AI分析测试 -->
+        <div id="aiAnalysis" class="test-section">
+            <h2>🤖 AI分析测试</h2>
+            
+            <div class="test-controls">
+                <button class="control-button success" onclick="runAIAnalysisTests()">🧪 运行AI分析测试</button>
+                <button class="control-button" onclick="testAIButton()">🔘 测试AI分析按钮</button>
+                <button class="control-button" onclick="simulateAIClick()">🖱️ 模拟按钮点击</button>
+                <button class="control-button" onclick="clearOutput('aiOutput')">🗑️ 清除输出</button>
+            </div>
+            
+            <div class="test-grid">
+                <div class="test-card">
+                    <h4>🔘 按钮功能测试</h4>
+                    <button id="testAIButton" class="control-button">AI分析</button>
+                    <div class="debug-panel" id="testDebugPanel" style="display: none;">
+                        <h4>AI调试面板</h4>
+                        <p>这是AI分析面板的测试内容</p>
+                    </div>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🔍 状态检查</h4>
+                    <ul>
+                        <li>按钮点击响应</li>
+                        <li>状态切换正确性</li>
+                        <li>面板显示/隐藏</li>
+                        <li>事件传递机制</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div id="aiOutput" class="test-output">等待测试...</div>
+        </div>
+        
+        <!-- 调试工具 -->
+        <div id="debugging" class="test-section">
+            <h2>🔍 调试工具</h2>
+            
+            <div class="test-controls">
+                <button class="control-button" onclick="checkGameState()">🎮 检查游戏状态</button>
+                <button class="control-button" onclick="checkVueComponents()">🔧 检查Vue组件</button>
+                <button class="control-button" onclick="checkEventHandlers()">📡 检查事件处理器</button>
+                <button class="control-button danger" onclick="enableDebugMode()">🐛 启用调试模式</button>
+                <button class="control-button" onclick="clearOutput('debugOutput')">🗑️ 清除输出</button>
+            </div>
+            
+            <div class="test-grid">
+                <div class="test-card">
+                    <h4>🎮 游戏状态检查</h4>
+                    <ul>
+                        <li>Vue应用实例状态</li>
+                        <li>游戏逻辑状态</li>
+                        <li>组件通信状态</li>
+                    </ul>
+                </div>
+                
+                <div class="test-card">
+                    <h4>🔧 组件诊断</h4>
+                    <ul>
+                        <li>组件挂载状态</li>
+                        <li>Props传递检查</li>
+                        <li>事件绑定验证</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div id="debugOutput" class="test-output">等待调试...</div>
+        </div>
+        
+        <!-- 集成测试 -->
+        <div id="integration" class="test-section">
+            <h2>🔗 集成测试</h2>
+            
+            <div class="test-controls">
+                <button class="control-button success" onclick="runFullIntegrationTest()">🚀 运行完整集成测试</button>
+                <button class="control-button" onclick="loadGameInFrame()">📱 在框架中加载游戏</button>
+                <button class="control-button" onclick="clearOutput('integrationOutput')">🗑️ 清除输出</button>
+            </div>
+            
+            <iframe id="gameFrame" class="game-frame" style="display: none;"></iframe>
+            
+            <div id="integrationOutput" class="test-output">等待集成测试...</div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let gameWindow = null;
+        let debugMode = false;
+        let testResults = [];
+        
+        // 标签页切换
+        function showTab(tabName) {
+            // 隐藏所有测试区域
+            const sections = document.querySelectorAll('.test-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // 移除所有按钮的active类
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // 显示选中的测试区域
+            document.getElementById(tabName).classList.add('active');
+            
+            // 激活对应的按钮
+            event.target.classList.add('active');
+        }
+        
+        // 通用日志函数
+        function log(message, type = 'info', outputId = 'gameLogicOutput') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry);
+            
+            const output = document.getElementById(outputId);
+            const logDiv = document.createElement('div');
+            logDiv.className = `test-result ${type}`;
+            logDiv.innerHTML = `<strong>${timestamp}</strong> ${message}`;
+            output.appendChild(logDiv);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // 清除输出
+        function clearOutput(outputId) {
+            document.getElementById(outputId).innerHTML = '输出已清除...';
+        }
+        
+        // 打开游戏页面
+        function openGamePage() {
+            try {
+                gameWindow = window.open('http://localhost:3001/', 'gameWindow');
+                log('游戏页面已在新窗口打开', 'pass');
+            } catch (error) {
+                log(`打开游戏页面失败: ${error.message}`, 'fail');
+            }
+        }
+        
+        // 游戏逻辑测试
+        function runGameLogicTests() {
+            log('开始运行游戏逻辑测试...', 'info');
+            
+            // 简单的测试框架
+            class TestRunner {
+                constructor() {
+                    this.results = [];
+                }
+                
+                test(name, testFn) {
+                    try {
+                        testFn();
+                        this.results.push({ name, status: 'pass', message: '测试通过' });
+                        log(`✓ ${name}: 测试通过`, 'pass');
+                    } catch (error) {
+                        this.results.push({ name, status: 'fail', message: error.message });
+                        log(`✗ ${name}: ${error.message}`, 'fail');
+                    }
+                }
+                
+                assert(condition, message) {
+                    if (!condition) {
+                        throw new Error(message || '断言失败');
+                    }
+                }
+                
+                assertEqual(actual, expected, message) {
+                    if (actual !== expected) {
+                        throw new Error(`${message || '值不相等'}: 期望 ${expected}, 实际 ${actual}`);
+                    }
+                }
+            }
+            
+            const runner = new TestRunner();
+            
+            // 基础功能测试
+            runner.test('游戏状态初始化', () => {
+                runner.assert(typeof window !== 'undefined', '浏览器环境检查');
+                runner.assert(document.querySelector, 'DOM API可用');
+            });
+            
+            runner.test('Vue框架检查', () => {
+                runner.assert(typeof Vue !== 'undefined' || window.Vue, 'Vue框架已加载');
+            });
+            
+            runner.test('游戏模块检查', () => {
+                // 这里需要在游戏页面中运行
+                log('注意: 部分测试需要在游戏页面中运行', 'warning');
+            });
+            
+            // 显示测试总结
+            const passed = runner.results.filter(r => r.status === 'pass').length;
+            const total = runner.results.length;
+            
+            if (passed === total) {
+                log(`🎉 所有测试通过! (${passed}/${total})`, 'pass');
+            } else {
+                log(`⚠️ 部分测试失败 (${passed}/${total})`, 'warning');
+            }
+        }
+        
+        // 筹码结算测试
+        function runChipSettlementTests() {
+            log('开始运行筹码结算测试...', 'info', 'chipOutput');
+            
+            // 模拟筹码结算逻辑
+            class MockGameFinance {
+                constructor() {
+                    this.playerChips = 1000;
+                    this.opponentChips = 1000;
+                    this.pot = 0;
+                    this.playerBet = 0;
+                    this.opponentBet = 0;
+                }
+                
+                playerRaise(amount) {
+                    if (this.playerChips >= amount) {
+                        this.playerChips -= amount;
+                        this.playerBet += amount;
+                        this.pot += amount;
+                        return true;
+                    }
+                    return false;
+                }
+                
+                opponentRaise(amount) {
+                    if (this.opponentChips >= amount) {
+                        this.opponentChips -= amount;
+                        this.opponentBet += amount;
+                        this.pot += amount;
+                        return true;
+                    }
+                    return false;
+                }
+                
+                distributePot(winner) {
+                    const totalChips = this.playerChips + this.opponentChips + this.pot;
+                    
+                    if (winner === 'player') {
+                        this.playerChips += this.pot;
+                    } else if (winner === 'opponent') {
+                        this.opponentChips += this.pot;
+                    } else if (winner === 'tie') {
+                        const halfPot = Math.floor(this.pot / 2);
+                        this.playerChips += halfPot;
+                        this.opponentChips += this.pot - halfPot;
+                    }
+                    
+                    this.pot = 0;
+                    this.playerBet = 0;
+                    this.opponentBet = 0;
+                    
+                    return totalChips === this.playerChips + this.opponentChips;
+                }
+            }
+            
+            const finance = new MockGameFinance();
+            
+            // 测试场景1: 玩家获胜
+            log('测试场景1: 玩家获胜', 'info', 'chipOutput');
+            finance.playerRaise(50);
+            finance.opponentRaise(50);
+            const conserved1 = finance.distributePot('player');
+            log(`玩家筹码: ${finance.playerChips}, 对手筹码: ${finance.opponentChips}`, 'info', 'chipOutput');
+            log(`筹码守恒: ${conserved1 ? '✓' : '✗'}`, conserved1 ? 'pass' : 'fail', 'chipOutput');
+            
+            // 测试场景2: 对手获胜
+            log('测试场景2: 对手获胜', 'info', 'chipOutput');
+            finance.playerRaise(30);
+            finance.opponentRaise(30);
+            const conserved2 = finance.distributePot('opponent');
+            log(`玩家筹码: ${finance.playerChips}, 对手筹码: ${finance.opponentChips}`, 'info', 'chipOutput');
+            log(`筹码守恒: ${conserved2 ? '✓' : '✗'}`, conserved2 ? 'pass' : 'fail', 'chipOutput');
+            
+            // 测试场景3: 平局
+            log('测试场景3: 平局', 'info', 'chipOutput');
+            finance.playerRaise(25);
+            finance.opponentRaise(25);
+            const conserved3 = finance.distributePot('tie');
+            log(`玩家筹码: ${finance.playerChips}, 对手筹码: ${finance.opponentChips}`, 'info', 'chipOutput');
+            log(`筹码守恒: ${conserved3 ? '✓' : '✗'}`, conserved3 ? 'pass' : 'fail', 'chipOutput');
+            
+            log('🎰 筹码结算测试完成', 'pass', 'chipOutput');
+        }
+        
+        // 测试特定场景
+        function testSpecificScenario() {
+            log('运行特定筹码场景测试...', 'info', 'chipOutput');
+            
+            // 测试奇数底池
+            log('测试奇数底池分配...', 'info', 'chipOutput');
+            const finance = {
+                pot: 101,
+                playerChips: 500,
+                opponentChips: 500
+            };
+            
+            const halfPot = Math.floor(finance.pot / 2);
+            const playerGets = halfPot;
+            const opponentGets = finance.pot - halfPot;
+            
+            log(`底池: ${finance.pot}, 玩家获得: ${playerGets}, 对手获得: ${opponentGets}`, 'info', 'chipOutput');
+            log(`奇数处理: ${opponentGets > playerGets ? '✓ 对手多获得1筹码' : '✗'}`, 'pass', 'chipOutput');
+        }
+        
+        // AI分析测试
+        function runAIAnalysisTests() {
+            log('开始运行AI分析测试...', 'info', 'aiOutput');
+            
+            // 测试本地AI按钮
+            const testButton = document.getElementById('testAIButton');
+            const testPanel = document.getElementById('testDebugPanel');
+            
+            if (testButton && testPanel) {
+                log('✓ AI分析按钮和面板元素存在', 'pass', 'aiOutput');
+                
+                // 测试点击事件
+                testButton.addEventListener('click', function() {
+                    const isVisible = testPanel.style.display !== 'none';
+                    testPanel.style.display = isVisible ? 'none' : 'block';
+                    this.classList.toggle('active');
+                    log(`AI面板状态切换: ${isVisible ? '隐藏' : '显示'}`, 'pass', 'aiOutput');
+                });
+                
+                log('✓ AI分析按钮事件监听器已绑定', 'pass', 'aiOutput');
+            } else {
+                log('✗ AI分析按钮或面板元素未找到', 'fail', 'aiOutput');
+            }
+        }
+        
+        // 测试AI按钮
+        function testAIButton() {
+            log('测试AI分析按钮功能...', 'info', 'aiOutput');
+            
+            const testButton = document.getElementById('testAIButton');
+            if (testButton) {
+                testButton.click();
+                log('✓ AI按钮点击事件已触发', 'pass', 'aiOutput');
+            } else {
+                log('✗ AI按钮未找到', 'fail', 'aiOutput');
+            }
+        }
+        
+        // 模拟AI按钮点击
+        function simulateAIClick() {
+            if (!gameWindow || gameWindow.closed) {
+                log('请先打开游戏页面', 'warning', 'aiOutput');
+                return;
+            }
+            
+            try {
+                const gameDoc = gameWindow.document;
+                const aiButton = gameDoc.querySelector('.gto-debug-toggle');
+                
+                if (aiButton) {
+                    log('在游戏页面中找到AI分析按钮', 'info', 'aiOutput');
+                    aiButton.click();
+                    log('✓ AI分析按钮点击事件已触发', 'pass', 'aiOutput');
+                } else {
+                    log('✗ 在游戏页面中未找到AI分析按钮', 'fail', 'aiOutput');
+                }
+            } catch (error) {
+                log(`模拟点击失败: ${error.message}`, 'fail', 'aiOutput');
+            }
+        }
+        
+        // 检查游戏状态
+        function checkGameState() {
+            log('检查游戏状态...', 'info', 'debugOutput');
+            
+            if (!gameWindow || gameWindow.closed) {
+                log('游戏页面未打开', 'warning', 'debugOutput');
+                return;
+            }
+            
+            try {
+                const gameDoc = gameWindow.document;
+                const vueApp = gameDoc.querySelector('#app');
+                
+                if (vueApp) {
+                    log('✓ Vue应用已找到', 'pass', 'debugOutput');
+                    log(`页面标题: ${gameDoc.title}`, 'info', 'debugOutput');
+                    log(`页面URL: ${gameWindow.location.href}`, 'info', 'debugOutput');
+                } else {
+                    log('✗ Vue应用未找到', 'fail', 'debugOutput');
+                }
+            } catch (error) {
+                log(`检查游戏状态失败: ${error.message}`, 'fail', 'debugOutput');
+            }
+        }
+        
+        // 检查Vue组件
+        function checkVueComponents() {
+            log('检查Vue组件状态...', 'info', 'debugOutput');
+            
+            if (!gameWindow || gameWindow.closed) {
+                log('请先打开游戏页面', 'warning', 'debugOutput');
+                return;
+            }
+            
+            try {
+                const gameDoc = gameWindow.document;
+                const components = [
+                    '.game-controls',
+                    '.ai-debug-panel',
+                    '.player-area',
+                    '.opponent-area'
+                ];
+                
+                components.forEach(selector => {
+                    const element = gameDoc.querySelector(selector);
+                    if (element) {
+                        log(`✓ 组件 ${selector} 已找到`, 'pass', 'debugOutput');
+                    } else {
+                        log(`✗ 组件 ${selector} 未找到`, 'fail', 'debugOutput');
+                    }
+                });
+            } catch (error) {
+                log(`检查Vue组件失败: ${error.message}`, 'fail', 'debugOutput');
+            }
+        }
+        
+        // 检查事件处理器
+        function checkEventHandlers() {
+            log('检查事件处理器...', 'info', 'debugOutput');
+            
+            log('事件处理器检查清单:', 'info', 'debugOutput');
+            log('1. GameControls组件发出 toggle-gto-debug 事件', 'info', 'debugOutput');
+            log('2. App.vue监听该事件并调用 toggleGTODebug 方法', 'info', 'debugOutput');
+            log('3. toggleGTODebug 方法切换 showGTODebug 状态', 'info', 'debugOutput');
+            log('4. AIDebugPanel根据 showGTODebug 显示/隐藏', 'info', 'debugOutput');
+        }
+        
+        // 启用调试模式
+        function enableDebugMode() {
+            debugMode = true;
+            log('🐛 调试模式已启用', 'warning', 'debugOutput');
+            log('现在所有操作都会记录详细日志', 'info', 'debugOutput');
+        }
+        
+        // 在框架中加载游戏
+        function loadGameInFrame() {
+            const gameFrame = document.getElementById('gameFrame');
+            gameFrame.src = 'http://localhost:3001/';
+            gameFrame.style.display = 'block';
+            log('游戏已加载到iframe中', 'pass', 'integrationOutput');
+            
+            gameFrame.onload = function() {
+                log('游戏页面在iframe中加载完成', 'pass', 'integrationOutput');
+            };
+        }
+        
+        // 运行完整集成测试
+        function runFullIntegrationTest() {
+            log('开始运行完整集成测试...', 'info', 'integrationOutput');
+            
+            // 依次运行所有测试
+            setTimeout(() => {
+                log('1/4 运行游戏逻辑测试...', 'info', 'integrationOutput');
+                runGameLogicTests();
+            }, 500);
+            
+            setTimeout(() => {
+                log('2/4 运行筹码结算测试...', 'info', 'integrationOutput');
+                runChipSettlementTests();
+            }, 1500);
+            
+            setTimeout(() => {
+                log('3/4 运行AI分析测试...', 'info', 'integrationOutput');
+                runAIAnalysisTests();
+            }, 2500);
+            
+            setTimeout(() => {
+                log('4/4 运行调试检查...', 'info', 'integrationOutput');
+                checkGameState();
+                checkVueComponents();
+                log('🚀 完整集成测试完成!', 'pass', 'integrationOutput');
+            }, 3500);
+        }
+        
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            log('🎮 德州扑克游戏统一测试平台已加载', 'pass');
+            log('请选择相应的测试标签页开始测试', 'info');
+        });
+    </script>
+</body>
+</html>

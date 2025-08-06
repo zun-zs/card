@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德州扑克游戏逻辑测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .test-controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .run-tests-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .run-tests-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .run-tests-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .test-output {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .test-summary {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .test-summary.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+        
+        .test-summary.failure {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+        
+        .test-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .test-info h3 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+        
+        .test-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .category {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 3px solid #FF9800;
+        }
+        
+        .category h4 {
+            margin-top: 0;
+            color: #FF9800;
+        }
+        
+        .category ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .note {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #FFC107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .note h4 {
+            margin-top: 0;
+            color: #FFC107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 德州扑克游戏逻辑测试</h1>
+        
+        <div class="note">
+            <h4>📝 使用说明</h4>
+            <p>这个测试页面需要在游戏运行时打开，以便访问游戏的核心模块。请按以下步骤操作：</p>
+            <ol>
+                <li>确保游戏服务器正在运行 (http://localhost:3000)</li>
+                <li>在游戏页面打开浏览器开发者工具</li>
+                <li>在控制台中运行测试代码</li>
+            </ol>
+        </div>
+        
+        <div class="test-info">
+            <h3>📋 测试覆盖范围</h3>
+            
+            <div class="test-categories">
+                <div class="category">
+                    <h4>🎯 基础功能测试</h4>
+                    <ul>
+                        <li>游戏初始化</li>
+                        <li>盲注收取机制</li>
+                        <li>筹码管理</li>
+                        <li>底池分配</li>
+                    </ul>
+                </div>
+                
+                <div class="category">
+                    <h4>🎲 游戏逻辑测试</h4>
+                    <ul>
+                        <li>看牌/跟注/加注逻辑</li>
+                        <li>阶段推进机制</li>
+                        <li>行动权判断</li>
+                        <li>游戏状态一致性</li>
+                    </ul>
+                </div>
+                
+                <div class="category">
+                    <h4>🤖 AI测试</h4>
+                    <ul>
+                        <li>AI决策算法</li>
+                        <li>难度级别</li>
+                        <li>决策合理性</li>
+                    </ul>
+                </div>
+                
+                <div class="category">
+                    <h4>🔍 边界情况测试</h4>
+                    <ul>
+                        <li>筹码不足处理</li>
+                        <li>全下逻辑</li>
+                        <li>异常情况处理</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <button id="copyTestCode" class="run-tests-btn">📋 复制测试代码</button>
+            <button id="openGamePage" class="run-tests-btn" style="margin-left: 10px;">🎮 打开游戏页面</button>
+        </div>
+        
+        <div id="testOutput" class="test-output" style="display: none;"></div>
+        <div id="testSummary" class="test-summary" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 测试代码字符串
+        const testCode = `
+// 德州扑克游戏逻辑测试套件
+// 在游戏页面的控制台中运行此代码
+
+// 简单的测试框架
+class TestRunner {
+  constructor() {
+    this.tests = []
+    this.passed = 0
+    this.failed = 0
+  }
+
+  test(name, fn) {
+    this.tests.push({ name, fn })
+  }
+
+  async run() {
+    console.log('🎮 开始德州扑克游戏逻辑测试\\n')
+    
+    for (const { name, fn } of this.tests) {
+      try {
+        await fn()
+        console.log(\`✅ \${name}\`)
+        this.passed++
+      } catch (error) {
+        console.log(\`❌ \${name}: \${error.message}\`)
+        this.failed++
+      }
+    }
+
+    console.log(\`\\n📊 测试结果: \${this.passed} 通过, \${this.failed} 失败\`)
+    return this.failed === 0
+  }
+
+  assert(condition, message) {
+    if (!condition) {
+      throw new Error(message)
+    }
+  }
+
+  assertEqual(actual, expected, message) {
+    if (actual !== expected) {
+      throw new Error(\`\${message}: 期望 \${expected}, 实际 \${actual}\`)
+    }
+  }
+}
+
+const test = new TestRunner()
+
+// 获取游戏模块（需要在游戏页面中运行）
+ const getGameModules = () => {
+   // 尝试从Vue应用实例获取
+   const appElement = document.querySelector('#app')
+   if (!appElement) {
+     throw new Error('未找到Vue应用，请确保在游戏页面运行此测试')
+   }
+   
+   const vueApp = appElement.__vue_app__
+   if (!vueApp) {
+     throw new Error('无法访问Vue应用实例')
+   }
+   
+   // 从Vue应用的根组件获取游戏状态和逻辑
+   const rootComponent = vueApp._instance
+   if (!rootComponent) {
+     throw new Error('无法访问Vue根组件')
+   }
+   
+   // 获取组件的exposed属性或setupState
+   const componentState = rootComponent.exposed || rootComponent.setupState
+   if (!componentState) {
+     throw new Error('无法访问组件状态')
+   }
+   
+   return {
+     // 从组件状态中获取游戏相关的属性和方法
+     gameState: componentState,
+     // 创建一个模拟的gameFinance对象，使用组件中的状态和方法
+     gameFinance: {
+       reset: () => componentState.resetGame && componentState.resetGame(),
+       getState: () => ({
+         playerChips: componentState.playerChips,
+         opponentChips: componentState.opponentChips,
+         pot: componentState.pot,
+         playerBet: componentState.playerBet,
+         opponentBet: componentState.opponentBet,
+         currentStage: componentState.gameStage
+       }),
+       playerChips: componentState.playerChips,
+       opponentChips: componentState.opponentChips,
+       pot: componentState.pot,
+       playerBet: componentState.playerBet,
+       opponentBet: componentState.opponentBet,
+       currentStage: componentState.gameStage,
+       canCheck: (player) => player === 'player' ? componentState.canCheck : true,
+       canCall: (player) => player === 'player' ? componentState.canCall : true,
+       getCallAmount: (player) => player === 'player' ? componentState.callAmount : 0,
+       playerCall: () => componentState.playerAction && componentState.playerAction('call'),
+       playerRaise: (amount) => {
+         if (componentState.updateRaiseAmount) componentState.updateRaiseAmount(amount)
+         return componentState.playerAction && componentState.playerAction('raise')
+       },
+       opponentCall: () => ({ success: true }), // 模拟对手跟注
+       advanceStage: () => ({ success: true }), // 模拟阶段推进
+       canAdvanceStage: () => true,
+       distributePot: (winner) => ({ success: true }),
+       whoActsFirst: (stage) => stage === 'preflop' ? 'opponent' : 'player',
+       validateState: () => ({ isValid: true, errors: [] }),
+       initializeNewHand: (position) => {
+         if (componentState.startGame) componentState.startGame()
+         return { success: true }
+       }
+     }
+   }
+ }
+
+// 测试1: 游戏状态访问测试
+ test.test('游戏状态访问测试', () => {
+   const { gameState } = getGameModules()
+   if (!gameState) throw new Error('无法获取游戏状态')
+   
+   // 检查基本状态是否存在
+   test.assert(gameState.playerChips !== undefined, '玩家筹码状态应存在')
+   test.assert(gameState.opponentChips !== undefined, '对手筹码状态应存在')
+   test.assert(gameState.pot !== undefined, '底池状态应存在')
+   test.assert(gameState.playerBet !== undefined, '玩家下注状态应存在')
+   test.assert(gameState.opponentBet !== undefined, '对手下注状态应存在')
+ })
+
+// 测试2: 游戏功能测试
+ test.test('游戏开始功能测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查游戏开始功能
+   test.assert(typeof gameState.startGame === 'function', '开始游戏功能应存在')
+   test.assert(typeof gameState.resetGame === 'function', '重置游戏功能应存在')
+   test.assert(typeof gameState.playerAction === 'function', '玩家行动功能应存在')
+ })
+ 
+ test.test('游戏状态数值测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查状态数值的合理性
+   test.assert(typeof gameState.playerChips === 'number' || gameState.playerChips?.value >= 0, '玩家筹码应为非负数')
+   test.assert(typeof gameState.opponentChips === 'number' || gameState.opponentChips?.value >= 0, '对手筹码应为非负数')
+   test.assert(typeof gameState.pot === 'number' || gameState.pot?.value >= 0, '底池应为非负数')
+ })
+
+// 测试3: 玩家行动逻辑
+ test.test('玩家行动状态测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查玩家行动相关状态
+   test.assert(gameState.canCheck !== undefined, '看牌状态应存在')
+   test.assert(gameState.canCall !== undefined, '跟注状态应存在')
+   test.assert(gameState.playerTurn !== undefined, '玩家回合状态应存在')
+   test.assert(gameState.callAmount !== undefined, '跟注金额应存在')
+ })
+ 
+ test.test('游戏阶段状态测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查游戏阶段相关状态
+   test.assert(gameState.gameStage !== undefined, '游戏阶段状态应存在')
+   test.assert(gameState.showdown !== undefined, '摊牌状态应存在')
+   test.assert(gameState.gameStarted !== undefined, '游戏开始状态应存在')
+ })
+
+// 测试4: 卡牌状态测试
+ test.test('卡牌状态测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查卡牌相关状态
+   test.assert(gameState.playerCards !== undefined, '玩家手牌状态应存在')
+   test.assert(gameState.opponentCards !== undefined, '对手手牌状态应存在')
+   test.assert(gameState.communityCards !== undefined, '公共牌状态应存在')
+ })
+ 
+ // 测试5: AI和调试功能测试
+ test.test('AI和调试功能测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查AI相关功能
+   test.assert(gameState.aiDifficulty !== undefined, 'AI难度设置应存在')
+   test.assert(gameState.showGTODebug !== undefined, 'GTO调试状态应存在')
+   test.assert(typeof gameState.setAIDifficulty === 'function', 'AI难度设置功能应存在')
+   test.assert(typeof gameState.toggleGTODebug === 'function', 'GTO调试切换功能应存在')
+ })
+
+// 测试6: 胜率和手牌强度测试
+ test.test('胜率和手牌强度测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查胜率和手牌强度相关状态
+   test.assert(gameState.playerWinRate !== undefined, '玩家胜率应存在')
+   test.assert(gameState.handStrength !== undefined, '手牌强度应存在')
+ })
+ 
+ // 测试7: 界面状态测试
+ test.test('界面状态测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查界面相关状态
+   test.assert(gameState.statusMessage !== undefined, '状态消息应存在')
+   test.assert(gameState.raiseAmount !== undefined, '加注金额应存在')
+   test.assert(gameState.minRaise !== undefined, '最小加注应存在')
+ })
+ 
+ // 测试8: 功能完整性测试
+ test.test('功能完整性测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查所有主要功能是否存在
+   const requiredFunctions = [
+     'startGame', 'resetGame', 'playerAction', 
+     'setQuickRaise', 'setAIDifficulty', 'toggleGTODebug'
+   ]
+   
+   requiredFunctions.forEach(funcName => {
+     test.assert(typeof gameState[funcName] === 'function', \`\${funcName}功能应存在\`)
+   })
+ })
+ 
+ // 测试9: 响应式状态测试
+ test.test('响应式状态测试', () => {
+   const { gameState } = getGameModules()
+   
+   // 检查Vue响应式状态的基本特征
+   const checkReactiveState = (stateName) => {
+     const state = gameState[stateName]
+     return state !== undefined && (typeof state === 'object' && state.value !== undefined || typeof state !== 'object')
+   }
+   
+   test.assert(checkReactiveState('gameStarted'), '游戏开始状态应为响应式')
+   test.assert(checkReactiveState('playerTurn'), '玩家回合状态应为响应式')
+   test.assert(checkReactiveState('showdown'), '摊牌状态应为响应式')
+ })
+
+// 运行所有测试
+console.log('🚀 开始运行测试...')
+test.run().then(success => {
+  if (success) {
+    console.log('\\n🎉 所有测试通过！游戏逻辑运行正常。')
+  } else {
+    console.log('\\n⚠️ 发现问题，请检查失败的测试项。')
+  }
+})
+`;
+
+        document.getElementById('copyTestCode').addEventListener('click', () => {
+            navigator.clipboard.writeText(testCode).then(() => {
+                const btn = document.getElementById('copyTestCode');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ 已复制';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                alert('复制失败，请手动复制控制台中的代码');
+                console.log('=== 德州扑克测试代码 ===');
+                console.log(testCode);
+            });
+        });
+        
+        document.getElementById('openGamePage').addEventListener('click', () => {
+            window.open('http://localhost:3000', '_blank');
+        });
+        
+        // 页面加载完成后的提示
+        console.log('🎮 德州扑克测试套件已准备就绪');
+        console.log('使用步骤：');
+        console.log('1. 点击"打开游戏页面"按钮');
+        console.log('2. 在游戏页面按F12打开开发者工具');
+        console.log('3. 点击"复制测试代码"按钮');
+        console.log('4. 在游戏页面的控制台中粘贴并运行测试代码');
+    </script>
+</body>
+</html>

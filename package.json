@@ -1,0 +1,18 @@
+{
+  "name": "texas-holdem-poker",
+  "version": "1.0.0",
+  "description": "单机德州扑克游戏",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "vite": "^4.4.0"
+  }
+}

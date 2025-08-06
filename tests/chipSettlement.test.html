@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>筹码结算测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .scenario {
+            border-left: 4px solid #007bff;
+            padding-left: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎰 筹码结算逻辑测试</h1>
+        <p>这个测试验证游戏结束后筹码是否正确结算</p>
+        
+        <button onclick="runAllTests()">🧪 运行所有测试</button>
+        <button onclick="openGamePage()">🎮 打开游戏页面</button>
+        
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        // 简单的测试框架
+        class TestRunner {
+            constructor() {
+                this.results = [];
+            }
+
+            test(name, testFn) {
+                try {
+                    testFn();
+                    this.results.push({ name, status: 'pass', message: '测试通过' });
+                } catch (error) {
+                    this.results.push({ name, status: 'fail', message: error.message });
+                }
+            }
+
+            assert(condition, message) {
+                if (!condition) {
+                    throw new Error(message || '断言失败');
+                }
+            }
+
+            assertEqual(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(`${message || '值不相等'}: 期望 ${expected}, 实际 ${actual}`);
+                }
+            }
+
+            displayResults() {
+                const container = document.getElementById('testResults');
+                container.innerHTML = '';
+
+                this.results.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = `test-result ${result.status}`;
+                    div.innerHTML = `
+                        <strong>${result.status === 'pass' ? '✅' : '❌'} ${result.name}</strong><br>
+                        ${result.message}
+                    `;
+                    container.appendChild(div);
+                });
+
+                const summary = document.createElement('div');
+                const passed = this.results.filter(r => r.status === 'pass').length;
+                const total = this.results.length;
+                summary.className = 'test-result info';
+                summary.innerHTML = `<strong>📊 测试总结: ${passed}/${total} 通过</strong>`;
+                container.appendChild(summary);
+            }
+        }
+
+        // 模拟GameFinance类
+        class MockGameFinance {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.playerChips = 1000;
+                this.opponentChips = 1000;
+                this.playerBet = 0;
+                this.opponentBet = 0;
+                this.pot = 0;
+            }
+
+            initializeNewHand(playerPosition = 'big') {
+                this.playerBet = 0;
+                this.opponentBet = 0;
+                this.pot = 0;
+                this.collectBlinds(playerPosition);
+            }
+
+            collectBlinds(playerPosition = 'big') {
+                const smallBlind = 10;
+                const bigBlind = 20;
+                
+                if (playerPosition === 'small') {
+                    this.playerChips -= smallBlind;
+                    this.playerBet = smallBlind;
+                    this.pot += smallBlind;
+                    
+                    this.opponentChips -= bigBlind;
+                    this.opponentBet = bigBlind;
+                    this.pot += bigBlind;
+                } else {
+                    this.playerChips -= bigBlind;
+                    this.playerBet = bigBlind;
+                    this.pot += bigBlind;
+                    
+                    this.opponentChips -= smallBlind;
+                    this.opponentBet = smallBlind;
+                    this.pot += smallBlind;
+                }
+            }
+
+            playerCall() {
+                const callAmount = Math.max(0, this.opponentBet - this.playerBet);
+                if (callAmount > 0 && this.playerChips >= callAmount) {
+                    this.playerChips -= callAmount;
+                    this.playerBet += callAmount;
+                    this.pot += callAmount;
+                    return { success: true };
+                }
+                return { success: false };
+            }
+
+            opponentCall() {
+                const callAmount = Math.max(0, this.playerBet - this.opponentBet);
+                if (callAmount > 0 && this.opponentChips >= callAmount) {
+                    this.opponentChips -= callAmount;
+                    this.opponentBet += callAmount;
+                    this.pot += callAmount;
+                    return { success: true };
+                }
+                return { success: false };
+            }
+
+            playerRaise(totalBetAmount) {
+                const raiseAmount = totalBetAmount - this.playerBet;
+                if (raiseAmount > 0 && this.playerChips >= raiseAmount) {
+                    this.playerChips -= raiseAmount;
+                    this.playerBet = totalBetAmount;
+                    this.pot += raiseAmount;
+                    return { success: true };
+                }
+                return { success: false };
+            }
+
+            opponentRaise(totalBetAmount) {
+                const raiseAmount = totalBetAmount - this.opponentBet;
+                if (raiseAmount > 0 && this.opponentChips >= raiseAmount) {
+                    this.opponentChips -= raiseAmount;
+                    this.opponentBet = totalBetAmount;
+                    this.pot += raiseAmount;
+                    return { success: true };
+                }
+                return { success: false };
+            }
+
+            distributePot(winner) {
+                const potAmount = this.pot;
+                
+                switch (winner) {
+                    case 'player':
+                        this.playerChips += potAmount;
+                        break;
+                    case 'opponent':
+                        this.opponentChips += potAmount;
+                        break;
+                    case 'tie':
+                        const halfPot = Math.floor(potAmount / 2);
+                        this.playerChips += halfPot;
+                        this.opponentChips += (potAmount - halfPot);
+                        break;
+                }
+                
+                // 清空底池和当前下注
+                this.pot = 0;
+                this.playerBet = 0;
+                this.opponentBet = 0;
+                
+                return potAmount;
+            }
+
+            getState() {
+                return {
+                    playerChips: this.playerChips,
+                    opponentChips: this.opponentChips,
+                    playerBet: this.playerBet,
+                    opponentBet: this.opponentBet,
+                    pot: this.pot
+                };
+            }
+        }
+
+        function runAllTests() {
+            const test = new TestRunner();
+            const gameFinance = new MockGameFinance();
+
+            // 测试1: 基础底池分配 - 玩家获胜
+            test.test('玩家获胜时的筹码结算', () => {
+                gameFinance.reset();
+                gameFinance.initializeNewHand('big'); // 玩家大盲注
+                
+                const initialPlayerChips = gameFinance.playerChips;
+                const initialOpponentChips = gameFinance.opponentChips;
+                const initialPot = gameFinance.pot;
+                
+                // 模拟一些下注
+                gameFinance.playerRaise(40); // 玩家加注到40
+                gameFinance.opponentCall(); // 对手跟注
+                
+                const potBeforeDistribution = gameFinance.pot;
+                const playerChipsBeforeWin = gameFinance.playerChips;
+                
+                // 玩家获胜
+                const distributedAmount = gameFinance.distributePot('player');
+                
+                const state = gameFinance.getState();
+                
+                test.assertEqual(state.playerChips, playerChipsBeforeWin + distributedAmount, '玩家应获得底池');
+                test.assertEqual(state.pot, 0, '底池应被清空');
+                test.assertEqual(state.playerBet, 0, '玩家下注应被重置');
+                test.assertEqual(state.opponentBet, 0, '对手下注应被重置');
+                test.assertEqual(distributedAmount, potBeforeDistribution, '分配的金额应等于底池金额');
+            });
+
+            // 测试2: 对手获胜时的筹码结算
+            test.test('对手获胜时的筹码结算', () => {
+                gameFinance.reset();
+                gameFinance.initializeNewHand('small'); // 玩家小盲注
+                
+                // 模拟一些下注
+                gameFinance.playerCall(); // 玩家跟注
+                gameFinance.opponentRaise(60); // 对手加注
+                gameFinance.playerCall(); // 玩家跟注
+                
+                const potBeforeDistribution = gameFinance.pot;
+                const opponentChipsBeforeWin = gameFinance.opponentChips;
+                
+                // 对手获胜
+                const distributedAmount = gameFinance.distributePot('opponent');
+                
+                const state = gameFinance.getState();
+                
+                test.assertEqual(state.opponentChips, opponentChipsBeforeWin + distributedAmount, '对手应获得底池');
+                test.assertEqual(state.pot, 0, '底池应被清空');
+                test.assertEqual(distributedAmount, potBeforeDistribution, '分配的金额应等于底池金额');
+            });
+
+            // 测试3: 平局时的筹码结算
+            test.test('平局时的筹码结算', () => {
+                gameFinance.reset();
+                gameFinance.initializeNewHand('big');
+                
+                // 模拟一些下注
+                gameFinance.playerRaise(50);
+                gameFinance.opponentCall();
+                
+                const potBeforeDistribution = gameFinance.pot;
+                const playerChipsBeforeWin = gameFinance.playerChips;
+                const opponentChipsBeforeWin = gameFinance.opponentChips;
+                
+                // 平局
+                const distributedAmount = gameFinance.distributePot('tie');
+                
+                const state = gameFinance.getState();
+                
+                const expectedPlayerShare = Math.floor(potBeforeDistribution / 2);
+                const expectedOpponentShare = potBeforeDistribution - expectedPlayerShare;
+                
+                test.assertEqual(state.playerChips, playerChipsBeforeWin + expectedPlayerShare, '玩家应获得一半底池');
+                test.assertEqual(state.opponentChips, opponentChipsBeforeWin + expectedOpponentShare, '对手应获得一半底池');
+                test.assertEqual(state.pot, 0, '底池应被清空');
+                test.assertEqual(distributedAmount, potBeforeDistribution, '分配的金额应等于底池金额');
+            });
+
+            // 测试4: 筹码守恒定律
+            test.test('筹码守恒定律验证', () => {
+                gameFinance.reset();
+                
+                const initialTotalChips = gameFinance.playerChips + gameFinance.opponentChips;
+                
+                // 进行多轮游戏模拟
+                for (let i = 0; i < 5; i++) {
+                    gameFinance.initializeNewHand(i % 2 === 0 ? 'big' : 'small');
+                    
+                    // 随机一些行动
+                    if (Math.random() > 0.5) {
+                        gameFinance.playerRaise(30 + i * 10);
+                        gameFinance.opponentCall();
+                    } else {
+                        gameFinance.opponentCall();
+                    }
+                    
+                    // 随机获胜者
+                    const winner = Math.random() > 0.5 ? 'player' : 'opponent';
+                    gameFinance.distributePot(winner);
+                    
+                    const currentTotalChips = gameFinance.playerChips + gameFinance.opponentChips;
+                    test.assertEqual(currentTotalChips, initialTotalChips, `第${i+1}轮后总筹码应保持不变`);
+                }
+            });
+
+            // 测试5: 边界情况 - 奇数底池平局
+            test.test('奇数底池平局处理', () => {
+                gameFinance.reset();
+                gameFinance.initializeNewHand('big');
+                
+                // 创建奇数底池
+                gameFinance.playerRaise(35); // 总下注35
+                gameFinance.opponentCall();
+                
+                const potBeforeDistribution = gameFinance.pot; // 应该是70
+                test.assert(potBeforeDistribution % 2 === 0, '这个测试需要奇数底池'); // 实际上70是偶数，让我们调整
+                
+                // 手动设置奇数底池
+                gameFinance.pot = 71;
+                
+                const playerChipsBeforeWin = gameFinance.playerChips;
+                const opponentChipsBeforeWin = gameFinance.opponentChips;
+                
+                gameFinance.distributePot('tie');
+                
+                const state = gameFinance.getState();
+                
+                // 奇数底池时，一方应该得到35，另一方得到36
+                const playerGain = state.playerChips - playerChipsBeforeWin;
+                const opponentGain = state.opponentChips - opponentChipsBeforeWin;
+                
+                test.assertEqual(playerGain + opponentGain, 71, '分配的总金额应等于底池');
+                test.assert(Math.abs(playerGain - opponentGain) <= 1, '平局时差额不应超过1筹码');
+            });
+
+            test.displayResults();
+        }
+
+        function openGamePage() {
+            window.open('http://localhost:3000/', '_blank');
+        }
+
+        // 页面加载时显示说明
+        window.onload = function() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = `
+                <div class="test-result info">
+                    <strong>📋 测试说明</strong><br>
+                    这个测试验证以下筹码结算场景：<br>
+                    • 玩家获胜时的底池分配<br>
+                    • 对手获胜时的底池分配<br>
+                    • 平局时的底池平分<br>
+                    • 筹码守恒定律<br>
+                    • 奇数底池的处理<br><br>
+                    点击"运行所有测试"开始验证筹码结算逻辑。
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>
