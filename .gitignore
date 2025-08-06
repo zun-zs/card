@@ -1,0 +1,10 @@
+### Vuejs template
+# Recommended template: Node.gitignore
+
+node_modules/
+dist/
+.idea/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
