@@ -125,35 +125,7 @@ export function createGameLogic(gameState) {
       console.log('⚠️ 行动被阻止：', { isProcessingAction, gameEnded, playerTurn: playerTurn.value })
       return
     }
-
-    // 检查AI筹码是否为0，如果为0则游戏结束
-    if (opponentChips.value <= 0) {
-      console.log('🏆 AI筹码为0，玩家获胜')
-      statusMessage.value = '🎉 电脑筹码不足，你获胜！'
-      gameFinance.distributePot('player')
-      gameEnded = true
-
-      setTimeout(() => {
-        isProcessingAction = false
-        startNewRound()
-      }, 3000)
-      return
-    }
-
-    // 检查玩家筹码是否为0，如果为0则游戏结束
-    if (playerChips.value <= 0) {
-      console.log('🏆 玩家筹码为0，AI获胜')
-      statusMessage.value = '😔 你的筹码不足，电脑获胜！'
-      gameFinance.distributePot('opponent')
-      gameEnded = true
-
-      setTimeout(() => {
-        isProcessingAction = false
-        startNewRound()
-      }, 3000)
-      return
-    }
-
+    
     isProcessingAction = true
     console.log(`👤 玩家行动: ${action}`)
 
@@ -620,6 +592,29 @@ export function createGameLogic(gameState) {
         console.error('⚠️ 筹码总数不守恒！', { before: totalChipsBefore, after: totalChipsAfter })
       }
 
+      // 检查是否有玩家筹码为0，如果有则游戏结束
+      if (playerChips.value <= 0) {
+        console.log('🏆 玩家筹码为0，游戏结束')
+        statusMessage.value = '😔 你的筹码不足，游戏结束！电脑获胜！'
+        // 不开始新一局，游戏结束
+        setTimeout(() => {
+          isProcessingAction = false
+          // 可以在这里添加重新开始游戏的选项
+        }, 3000)
+        return
+      }
+      
+      if (opponentChips.value <= 0) {
+        console.log('🏆 AI筹码为0，游戏结束')
+        statusMessage.value = '🎉 电脑筹码不足，游戏结束！你获胜！'
+        // 不开始新一局，游戏结束
+        setTimeout(() => {
+          isProcessingAction = false
+          // 可以在这里添加重新开始游戏的选项
+        }, 3000)
+        return
+      }
+
       // 3秒后开始新一局
       setTimeout(() => {
         isProcessingAction = false
@@ -680,35 +675,7 @@ export function createGameLogic(gameState) {
       console.log('⚠️ 正在处理行动或游戏已结束，跳过AI行动')
       return
     }
-
-    // 检查AI筹码是否为0，如果为0则游戏结束
-    if (opponentChips.value <= 0) {
-      console.log('🏆 AI筹码为0，玩家获胜')
-      statusMessage.value = '🎉 电脑筹码不足，你获胜！'
-      gameFinance.distributePot('player')
-      gameEnded = true
-
-      setTimeout(() => {
-        isProcessingAction = false
-        startNewRound()
-      }, 3000)
-      return
-    }
-
-    // 检查玩家筹码是否为0，如果为0则游戏结束
-    if (playerChips.value <= 0) {
-      console.log('🏆 玩家筹码为0，AI获胜')
-      statusMessage.value = '😔 你的筹码不足，电脑获胜！'
-      gameFinance.distributePot('opponent')
-      gameEnded = true
-
-      setTimeout(() => {
-        isProcessingAction = false
-        startNewRound()
-      }, 3000)
-      return
-    }
-
+    
     isProcessingAction = true
     executeOpponentAction()
   }

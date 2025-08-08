@@ -128,8 +128,8 @@ export class GameFinance {
 
     return {
       success: true,
-      amount: callAmount,
-      message: `跟注 ${callAmount} 筹码`,
+      amount: actualCallAmount,
+      message: actualCallAmount < callAmount ? `全下 ${actualCallAmount} 筹码` : `跟注 ${actualCallAmount} 筹码`,
       playerChips: this.playerChips,
       playerBet: this.playerBet,
       pot: this.pot
@@ -211,8 +211,8 @@ export class GameFinance {
 
     return {
       success: true,
-      amount: callAmount,
-      message: `电脑跟注 ${callAmount} 筹码`,
+      amount: actualCallAmount,
+      message: actualCallAmount < callAmount ? `电脑全下 ${actualCallAmount} 筹码` : `电脑跟注 ${actualCallAmount} 筹码`,
       opponentChips: this.opponentChips,
       opponentBet: this.opponentBet,
       pot: this.pot
