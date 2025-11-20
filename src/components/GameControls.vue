@@ -40,29 +40,28 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
-  /* background: rgba(255, 255, 255, 0.1); */
-  border-radius: 15px;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 10px;
   backdrop-filter: blur(10px);
   flex-wrap: wrap;
 }
 
 .control-button {
-  padding: 12px 24px;
+  padding: 6px 15px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1em;
+  font-size: 0.85rem;
 }
 
 .control-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
 }
 
 .gto-debug-toggle.active {
@@ -72,20 +71,22 @@ export default {
 .difficulty-selector {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   color: white;
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .difficulty-select {
-  padding: 8px 12px;
+  padding: 5px 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.9);
   color: #333;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-size: 0.85rem;
 }
 
 .difficulty-select:hover {

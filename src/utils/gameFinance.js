@@ -145,12 +145,15 @@ export class GameFinance {
     const currentBet = this.playerBet
     const raiseAmount = totalBetAmount - currentBet
     
-    if (raiseAmount < this.minRaise) {
-      return { success: false, message: `最小加注金额为 ${this.minRaise}` }
-    }
-    
+    // 检查筹码是否足够
     if (this.playerChips < raiseAmount) {
       return { success: false, message: '筹码不足' }
+    }
+    
+    // 如果加注量小于最小加注，但等于所有筹码，则允许all-in
+    const raiseIncrement = totalBetAmount - Math.max(currentBet, this.opponentBet)
+    if (raiseIncrement < this.minRaise && raiseAmount < this.playerChips) {
+      return { success: false, message: `最小加注金额为 ${this.minRaise}` }
     }
 
     this.playerChips -= raiseAmount
@@ -158,10 +161,11 @@ export class GameFinance {
     this.pot += raiseAmount
     
     // 更新最小加注金额
-    this.minRaise = Math.max(this.minRaise, raiseAmount)
+    this.minRaise = Math.max(this.minRaise, raiseIncrement)
     
     // 记录行动
-    this.recordAction('player', 'raise')
+    const isAllIn = this.playerChips === 0
+    this.recordAction('player', isAllIn ? 'all-in' : 'raise')
     
     // 触发UI更新
     if (this.updateUI) this.updateUI()
@@ -170,7 +174,7 @@ export class GameFinance {
       success: true,
       amount: raiseAmount,
       totalBet: totalBetAmount,
-      message: `加注 ${raiseAmount} 筹码`,
+      message: isAllIn ? `全下 ${raiseAmount} 筹码` : `加注 ${raiseAmount} 筹码`,
       playerChips: this.playerChips,
       playerBet: this.playerBet,
       pot: this.pot
@@ -228,12 +232,15 @@ export class GameFinance {
     const currentBet = this.opponentBet
     const raiseAmount = totalBetAmount - currentBet
     
-    if (raiseAmount < this.minRaise) {
-      return { success: false, message: `最小加注金额为 ${this.minRaise}` }
-    }
-    
+    // 检查筹码是否足够
     if (this.opponentChips < raiseAmount) {
       return { success: false, message: '筹码不足' }
+    }
+    
+    // 如果加注量小于最小加注，但等于所有筹码，则允许all-in
+    const raiseIncrement = totalBetAmount - Math.max(currentBet, this.playerBet)
+    if (raiseIncrement < this.minRaise && raiseAmount < this.opponentChips) {
+      return { success: false, message: `最小加注金额为 ${this.minRaise}` }
     }
 
     this.opponentChips -= raiseAmount
@@ -241,10 +248,11 @@ export class GameFinance {
     this.pot += raiseAmount
     
     // 更新最小加注金额
-    this.minRaise = Math.max(this.minRaise, raiseAmount)
+    this.minRaise = Math.max(this.minRaise, raiseIncrement)
     
     // 记录行动
-    this.recordAction('opponent', 'raise')
+    const isAllIn = this.opponentChips === 0
+    this.recordAction('opponent', isAllIn ? 'all-in' : 'raise')
     
     // 触发UI更新
     if (this.updateUI) this.updateUI()
@@ -253,7 +261,7 @@ export class GameFinance {
       success: true,
       amount: raiseAmount,
       totalBet: totalBetAmount,
-      message: `电脑加注 ${raiseAmount} 筹码`,
+      message: isAllIn ? `电脑全下 ${raiseAmount} 筹码` : `电脑加注 ${raiseAmount} 筹码`,
       opponentChips: this.opponentChips,
       opponentBet: this.opponentBet,
       pot: this.pot
@@ -376,24 +384,27 @@ export class GameFinance {
   /**
    * 计算快速加注金额
    * @param {string} type 'min', 'quarter', 'half', 'pot', 'allin'
-   * @returns {number} 建议的总下注金额
+   * @returns {number} 建议的加注增量（相对于当前下注）
    */
   getQuickRaiseAmount(type) {
-    const range = this.getValidRaiseRange('player')
+    const currentBet = this.playerBet
+    const opponentBet = this.opponentBet
+    const callAmount = Math.max(0, opponentBet - currentBet)
+    const chips = this.playerChips
     
     switch (type) {
       case 'min':
-        return range.min
+        return callAmount + this.minRaise
       case 'quarter':
-        return Math.min(range.max, this.playerBet + Math.floor(this.playerChips * 0.25))
+        return Math.min(chips, callAmount + Math.floor(this.pot * 0.25))
       case 'half':
-        return Math.min(range.max, this.playerBet + Math.floor(this.playerChips * 0.5))
+        return Math.min(chips, callAmount + Math.floor(this.pot * 0.5))
       case 'pot':
-        return Math.min(range.max, this.playerBet + this.pot)
+        return Math.min(chips, callAmount + this.pot)
       case 'allin':
-        return range.max
+        return chips
       default:
-        return range.min
+        return callAmount + this.minRaise
     }
   }
 
@@ -404,7 +415,8 @@ export class GameFinance {
    */
   whoActsFirst(stage = 'preflop') {
     if (stage === 'preflop') {
-      // 翻牌前：小盲注先行动
+      // 翻牌前：大盲注左边的人先行动（小盲注左边，即UTG位）
+      // 但在两人局中，小盲注就是按钮，翻牍前小盲注先行动
       return this.playerPosition === 'small' ? 'player' : 'opponent'
     } else {
       // 翻牌后：小盲注先行动
@@ -418,7 +430,14 @@ export class GameFinance {
    */
   canAdvanceStage() {
     // 双方下注相等且都有过行动机会
-    return this.playerBet === this.opponentBet && this.actionCount >= 2
+    // 需要至少两次行动：一人一次
+    const betsEqual = this.playerBet === this.opponentBet
+    const enoughActions = this.actionCount >= 2
+    
+    // 特殊情况：如果一方all-in且另一方已跟注，也可以推进
+    const someoneAllIn = this.playerChips === 0 || this.opponentChips === 0
+    
+    return (betsEqual && enoughActions) || (betsEqual && someoneAllIn)
   }
 
   /**
@@ -435,6 +454,7 @@ export class GameFinance {
    * 进入下一阶段，重置当前轮下注
    */
   advanceStage() {
+    // 重置当前轮下注
     this.playerBet = 0
     this.opponentBet = 0
     this.minRaise = this.bigBlind
@@ -444,9 +464,11 @@ export class GameFinance {
     // 更新阶段
     const stages = ['preflop', 'flop', 'turn', 'river', 'showdown']
     const currentIndex = stages.indexOf(this.currentStage)
-    if (currentIndex < stages.length - 1) {
+    if (currentIndex >= 0 && currentIndex < stages.length - 1) {
       this.currentStage = stages[currentIndex + 1]
+      console.log(`🎯 金融模块阶段推进到: ${this.currentStage}`)
     }
+    
     // 保持底池不变
     
     // 触发UI更新

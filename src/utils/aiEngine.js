@@ -293,9 +293,11 @@ export class AdvancedAIEngine {
       factors.expectedValue *= (0.7 + Math.random() * 0.6) // 错误估计期望值
     }
 
-    // 修复激进度调整逻辑：激进度越高，阈值越低
-    factors.raiseThreshold *= (2 - config.aggressionFactor)
-    factors.callThreshold *= (2 - config.aggressionFactor)
+    // 激进度调整逻辑：激进度越高，阈值越低（更容易加注/跟注）
+    // aggressionFactor范围0.7-1.2，调整范围应该是0.85-1.15
+    const aggressionMultiplier = 2.0 - config.aggressionFactor // 1.3到0.8
+    factors.raiseThreshold *= aggressionMultiplier
+    factors.callThreshold *= aggressionMultiplier
 
     return factors
   }
@@ -341,7 +343,7 @@ export class AdvancedAIEngine {
           // 确保加注金额不超过可用筹码
           const maxRaiseSize = aiChips // AI的剩余筹码就是最大可加注金额
           raiseSize = Math.min(raiseSize, maxRaiseSize)
-          amount = Math.floor(aiBet + raiseSize)  // 返回总下注金额，确保为整数
+          amount = Math.floor(raiseSize)  // 返回加注增量，确保为整数
           reasoning = factors.shouldBluff ? '诈唬加注' : '价值加注'
         } else {
           action = 'check'

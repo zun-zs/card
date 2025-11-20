@@ -35,30 +35,31 @@ export default {
 
 <style scoped>
 .opponent {
-  /* background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%); */
-  border-radius: 15px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 8px;
   color: white;
-  /* box-shadow: 0 8px 25px rgba(0,0,0,0.15); */
+  flex-shrink: 0;
 }
 
 .opponent h3 {
-  margin: 0 0 15px 0;
+  margin: 0 0 6px 0;
   text-align: center;
-  font-size: 1.3em;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .player-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 6px;
   font-weight: 500;
+  font-size: 0.8rem;
 }
 
 .cards-container {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 </style>

@@ -48,24 +48,26 @@ export default {
 .player-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 4px;
   justify-content: center;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .action-button {
-  padding: 12px 20px;
+  padding: 5px 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1em;
-  min-width: 80px;
+  font-size: 0.8rem;
+  min-width: 55px;
 }
 
 .action-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .action-button:disabled {
@@ -97,38 +99,44 @@ export default {
 .raise-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   width: 100%;
 }
 
 .raise-controls {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 3px;
   align-items: center;
 }
 
 .raise-controls input[type="range"] {
   width: 100%;
-  max-width: 300px;
+  max-width: 200px;
+  height: 3px;
+}
+
+.raise-controls span {
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
 .quick-raise-buttons {
   display: flex;
-  gap: 5px;
+  gap: 3px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .quick-raise-button {
-  padding: 8px 12px;
+  padding: 3px 6px;
   border: none;
-  border-radius: 5px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.2);
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9em;
+  font-size: 0.7rem;
 }
 
 .quick-raise-button:hover:not(:disabled) {

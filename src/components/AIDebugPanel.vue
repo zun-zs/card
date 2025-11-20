@@ -65,35 +65,38 @@ export default {
 <style scoped>
 .gto-debug-panel {
   background: linear-gradient(135deg, #2d3436, #636e72) !important;
-  border-radius: 15px !important;
-  padding: 20px !important;
-  margin-top: 20px !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  margin-top: 8px !important;
   color: white !important;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .gto-debug-panel h3 {
-  margin: 0 0 20px 0;
+  margin: 0 0 10px 0;
   text-align: center;
   color: #74b9ff;
-  font-size: 1.2em;
+  font-size: 0.95rem;
 }
 
 .debug-info {
   display: grid;
-  gap: 12px;
+  gap: 6px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .debug-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 5px 8px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 5px;
   transition: background 0.2s ease;
 }
 
@@ -104,13 +107,15 @@ export default {
 .label {
   font-weight: 600;
   color: #ddd;
-  min-width: 100px;
+  min-width: 70px;
+  font-size: 0.75rem;
 }
 
 .value {
   font-weight: 500;
   text-align: right;
   flex: 1;
+  font-size: 0.75rem;
 }
 
 .positive {
@@ -135,8 +140,9 @@ export default {
 .reasoning {
   color: #a29bfe;
   font-style: italic;
-  max-width: 200px;
+  max-width: 150px;
   word-wrap: break-word;
+  font-size: 0.7rem;
 }
 
 .confidence {
@@ -148,14 +154,19 @@ export default {
   text-align: center;
   color: #b2bec3;
   font-style: italic;
-  padding: 20px;
+  padding: 15px;
+  font-size: 0.85rem;
 }
 
 @media (max-width: 768px) {
+  .debug-info {
+    grid-template-columns: 1fr;
+  }
+  
   .debug-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 5px;
+    gap: 3px;
   }
   
   .label {

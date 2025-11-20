@@ -1,29 +1,23 @@
 <template>
   <div class="poker-game">
-    <h1 class="game-title">德州扑克</h1>
+    <h1 class="game-title">🃏 德州扑克</h1>
 
     <div v-if="!gameStarted" class="start-screen">
       <button @click="startGame" class="start-button">开始游戏</button>
     </div>
 
-    <!-- 游戏控制面板始终显示 -->
-    <GameControls
-      v-if="gameStarted"
-      :ai-difficulty="aiDifficulty"
-      :available-difficulties="availableDifficulties"
-      @reset-game="resetGame"
-      @toggle-gto-debug="toggleGTODebug"
-      @set-ai-difficulty="setAIDifficulty"
-    />
+    <div v-if="gameStarted" class="game-container">
+      <!-- 游戏控制面板 -->
+      <GameControls
+        :ai-difficulty="aiDifficulty"
+        :available-difficulties="availableDifficulties"
+        :show-g-t-o-debug="showGTODebug"
+        @reset-game="resetGame"
+        @toggle-gto-debug="toggleGTODebug"
+        @set-ai-difficulty="setAIDifficulty"
+      />
 
-    <!-- AI调试面板始终显示 -->
-    <AIDebugPanel
-      :show-g-t-o-debug="showGTODebug"
-      :gto-debug-info="gtoDebugInfo"
-      :ai-engine-name="aiEngine?.config?.name || 'AI引擎'"
-    />
-
-    <div v-if="gameStarted">
+      <!-- 游戏桌面 -->
       <GameTable
         :community-cards="communityCards"
         :opponent-chips="opponentChips"
@@ -47,6 +41,14 @@
         @player-action="playerAction"
         @update-raise-amount="updateRaiseAmount"
         @set-quick-raise="setQuickRaise"
+      />
+
+      <!-- AI调试面板 -->
+      <AIDebugPanel
+        v-if="showGTODebug"
+        :show-g-t-o-debug="showGTODebug"
+        :gto-debug-info="gtoDebugInfo"
+        :ai-engine-name="aiEngine?.config?.name || 'AI引擎'"
       />
     </div>
   </div>
@@ -162,6 +164,37 @@ export default {
 }
 </script>
 
-<style>
-/* 基本样式将在main.css中定义 */
+<style scoped>
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 50px);
+  overflow: hidden;
+}
+
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 100px);
+}
+
+.start-button {
+  padding: 12px 30px;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
 </style>

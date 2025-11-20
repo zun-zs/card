@@ -32,30 +32,32 @@ export default {
 <style scoped>
 .win-rate-info {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
+  border-radius: 5px;
+  padding: 6px;
+  margin-bottom: 6px;
   backdrop-filter: blur(10px);
+  flex-shrink: 0;
 }
 
 .win-rate-display {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: 1.1em;
+  gap: 5px;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
   font-weight: bold;
 }
 
 .win-rate-label {
   color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
 }
 
 .win-rate-value {
-  font-size: 1.3em;
-  padding: 5px 10px;
-  border-radius: 5px;
+  font-size: 0.95rem;
+  padding: 2px 6px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.2);
 }
 
@@ -85,25 +87,35 @@ export default {
 }
 
 .hand-strength {
-  font-size: 0.9em;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
 }
 
 .detailed-rates {
   display: flex;
   justify-content: space-around;
-  font-size: 0.9em;
+  font-size: 0.7rem;
+  gap: 3px;
 }
 
 .win-detail {
   color: #4caf50;
+  padding: 1px 4px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 2px;
 }
 
 .tie-detail {
   color: #ffeb3b;
+  padding: 1px 4px;
+  background: rgba(255, 235, 59, 0.1);
+  border-radius: 2px;
 }
 
 .lose-detail {
   color: #ff6b6b;
+  padding: 1px 4px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 2px;
 }
 </style>

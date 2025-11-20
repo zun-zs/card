@@ -87,49 +87,57 @@ export default {
 .game-table {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 20px;
+  gap: 8px;
+  padding: 8px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
 }
 
 .community-cards {
   text-align: center;
+  flex-shrink: 0;
 }
 
 .community-cards h3 {
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   color: #333;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .cards-container {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .player-area {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
 }
 
 .game-status {
   text-align: center;
-  padding: 15px;
-  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-  border-radius: 10px;
+  padding: 6px;
+  border-radius: 6px;
   color: white;
-  /* box-shadow: 0 4px 15px rgba(0,0,0,0.1); */
+  flex-shrink: 0;
 }
 
 .pot {
-  font-size: 1.5em;
+  font-size: 1rem;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .current-action {
-  font-size: 1.1em;
+  font-size: 0.85rem;
   opacity: 0.9;
 }
 </style>

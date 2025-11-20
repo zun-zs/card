@@ -68,31 +68,37 @@ export default {
 
 <style scoped>
 .player {
-  /* background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); */
-  border-radius: 15px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 8px;
   color: white;
-  /* box-shadow: 0 8px 25px rgba(0,0,0,0.15); */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .player h3 {
-  margin: 0 0 15px 0;
+  margin: 0 0 6px 0;
   text-align: center;
-  font-size: 1.3em;
+  font-size: 0.95rem;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .player-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 6px;
   font-weight: 500;
+  font-size: 0.8rem;
+  flex-shrink: 0;
 }
 
 .cards-container {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 6px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 </style>

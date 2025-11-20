@@ -22,6 +22,9 @@ export function createGameLogic(gameState) {
     opponentBet,
     pot,
     callAmount,
+    minRaise,
+    canCheck,
+    canCall,
     playerWinRate,
     gtoDebugInfo,
     toggleGTODebug,
@@ -119,117 +122,244 @@ export function createGameLogic(gameState) {
   }
 
   // 玩家行动
-  const playerAction = (action) => {
-    // 防止重复处理
-    if (isProcessingAction || gameEnded || !playerTurn.value) {
-      console.log('⚠️ 行动被阻止：', { isProcessingAction, gameEnded, playerTurn: playerTurn.value })
-      return
+const playerAction = (action) => {
+  // 防止重复处理
+  if (isProcessingAction || gameEnded || !playerTurn.value) {
+    console.log('⚠️ 行动被阻止：', { isProcessingAction, gameEnded, playerTurn: playerTurn.value })
+    
+    // 提供更详细的错误信息
+    if (gameEnded) {
+      statusMessage.value = '游戏已结束，请开始新游戏'
+    } else if (!playerTurn.value) {
+      statusMessage.value = '不是你的回合'
+    } else if (isProcessingAction) {
+      statusMessage.value = '正在处理中，请稍候'
     }
     
-    isProcessingAction = true
-    console.log(`👤 玩家行动: ${action}`)
+    return
+  }
+  
+  isProcessingAction = true
+  console.log(`👤 玩家行动: ${action}`)
+  
+  // 验证行动类型
+  const validActions = ['fold', 'check', 'call', 'raise']
+  if (!validActions.includes(action)) {
+    console.log('❌ 无效的行动类型:', action)
+    statusMessage.value = '无效的行动类型'
+    isProcessingAction = false
+    return
+  }
 
-    // 更新AI的对手建模
-    try {
-      const estimatedWinRate = playerWinRate.value?.winRate || 0.5
-      const betSize = action === 'raise' ? raiseAmount.value : (action === 'call' ? callAmount.value : 0)
-      aiEngine.updateOpponentModel(action, gameStage.value, estimatedWinRate, betSize, pot.value)
-    } catch (error) {
-      console.warn('AI建模更新失败:', error)
-    }
+  // 更新AI的对手建模
+  try {
+    const estimatedWinRate = playerWinRate.value?.winRate || 0.5
+    const betSize = action === 'raise' ? raiseAmount.value : (action === 'call' ? callAmount.value : 0)
+    aiEngine.updateOpponentModel(action, gameStage.value, estimatedWinRate, betSize, pot.value)
+  } catch (error) {
+    console.warn('AI建模更新失败:', error)
+  }
+  
+  // 执行行动并处理结果
+  try {
+    let success = false
 
     // 执行玩家行动
     switch (action) {
       case 'fold':
-        handlePlayerFold()
+        success = handlePlayerFold()
         break
       case 'check':
-        handlePlayerCheck()
+        success = handlePlayerCheck()
         break
       case 'call':
-        handlePlayerCall()
+        success = handlePlayerCall()
         break
       case 'raise':
-        handlePlayerRaise()
+        success = handlePlayerRaise()
         break
       default:
         console.error('未知行动:', action)
-        isProcessingAction = false
+        statusMessage.value = '未知的行动类型'
+        success = false
     }
+    
+    if (success) {
+      console.log(`✅ 玩家行动成功: ${action}`)
+      // 行动成功，等待AI回应
+    } else {
+      console.log(`❌ 玩家行动失败: ${action}`)
+      isProcessingAction = false
+    }
+    
+  } catch (error) {
+    console.error('🚨 玩家行动错误:', error)
+    statusMessage.value = '行动处理失败，请重试'
+    isProcessingAction = false
   }
+}
 
   // 玩家弃牌
-  const handlePlayerFold = () => {
-    console.log('👤 玩家弃牌')
-    statusMessage.value = '你选择弃牌，电脑获胜'
-    gameFinance.distributePot('opponent')
-    gameEnded = true
-
-    setTimeout(() => {
-      isProcessingAction = false
-      startNewRound()
-    }, 2000)
+const handlePlayerFold = () => {
+  console.log('👤 玩家弃牌')
+  
+  // 检查游戏状态
+  if (!gameStarted.value || gameEnded) {
+    console.log('❌ 游戏状态异常，无法弃牌')
+    return false
   }
+   
+  statusMessage.value = '你选择弃牌，电脑获胜'
+  gameFinance.distributePot('opponent')
+  gameEnded = true
+
+  setTimeout(() => {
+    isProcessingAction = false
+    startNewRound()
+  }, 2000)
+  
+  return true
+}
 
   // 玩家看牌
-  const handlePlayerCheck = () => {
-    console.log('👤 玩家看牌')
-    const result = gameFinance.playerCheck()
-
-    if (!result.success) {
-      statusMessage.value = result.message
-      isProcessingAction = false
-      return
-    }
-
-    statusMessage.value = result.message
-    playerTurn.value = false
-
-    // 延迟处理后续逻辑
-    setTimeout(() => {
-      processNextAction()
-    }, 1000)
+const handlePlayerCheck = () => {
+  console.log('👤 玩家看牌')
+  
+  // 检查是否可以看牌
+  if (!canCheck.value) {
+    console.log('❌ 当前状态不允许看牌')
+    statusMessage.value = '当前状态不允许看牌'
+    return false
   }
+  
+  // 检查游戏状态
+  if (!gameStarted.value || gameEnded) {
+    console.log('❌ 游戏状态异常，无法看牌')
+    return false
+  }
+   
+  const result = gameFinance.playerCheck()
+
+  if (!result.success) {
+    statusMessage.value = result.message
+    return false
+  }
+
+  statusMessage.value = result.message
+  playerTurn.value = false
+
+  // 延迟处理后续逻辑
+  setTimeout(() => {
+    processNextAction()
+  }, 1000)
+  
+  return true
+}
 
   // 玩家跟注
-  const handlePlayerCall = () => {
-    console.log('👤 玩家跟注')
-    const result = gameFinance.playerCall()
-
-    if (!result.success) {
-      statusMessage.value = result.message
-      isProcessingAction = false
-      return
-    }
-
-    statusMessage.value = result.message
-    playerTurn.value = false
-
-    // 延迟处理后续逻辑
-    setTimeout(() => {
-      processNextAction()
-    }, 1000)
+const handlePlayerCall = () => {
+  console.log('👤 玩家跟注')
+  
+  // 检查是否可以跟注
+  if (!canCall.value) {
+    console.log('❌ 当前状态不允许跟注')
+    statusMessage.value = '当前状态不允许跟注'
+    return false
   }
+  
+  // 检查筹码是否足够
+  if (playerChips.value < callAmount.value) {
+    console.log('❌ 筹码不足，无法跟注')
+    statusMessage.value = '筹码不足，无法跟注'
+    return false
+  }
+  
+  // 检查游戏状态
+  if (!gameStarted.value || gameEnded) {
+    console.log('❌ 游戏状态异常，无法跟注')
+    return false
+  }
+   
+  const result = gameFinance.playerCall()
+
+  if (!result.success) {
+    statusMessage.value = result.message
+    return false
+  }
+
+  statusMessage.value = result.message
+  playerTurn.value = false
+
+  // 延迟处理后续逻辑
+  setTimeout(() => {
+    processNextAction()
+  }, 1000)
+  
+  return true
+}
 
   // 玩家加注
-  const handlePlayerRaise = () => {
-    console.log('👤 玩家加注:', raiseAmount.value)
-    const result = gameFinance.playerRaise(raiseAmount.value)
-
-    if (!result.success) {
-      statusMessage.value = result.message
-      isProcessingAction = false
-      return
-    }
-
-    statusMessage.value = result.message
-    playerTurn.value = false
-
-    // 延迟处理AI行动
-    setTimeout(() => {
-      executeOpponentAction()
-    }, 1000)
+const handlePlayerRaise = () => {
+  console.log('👤 玩家加注增量:', raiseAmount.value)
+  
+  // 验证加注金额
+  if (!raiseAmount.value || raiseAmount.value <= 0) {
+    console.log('❌ 加注金额无效')
+    statusMessage.value = '加注金额无效'
+    return false
   }
+  
+  // 检查是否可以加注
+  if (playerChips.value <= callAmount.value) {
+    console.log('❌ 筹码不足，无法加注')
+    statusMessage.value = '筹码不足，无法加注'
+    return false
+  }
+  
+  // 计算需要跟注的金额和额外加注的金额
+  const needToCall = callAmount.value
+  const raiseIncrement = raiseAmount.value - needToCall
+  
+  // 检查加注增量是否满足最小要求（除非all-in）
+  const isAllIn = raiseAmount.value >= playerChips.value
+  if (!isAllIn && raiseIncrement < minRaise.value) {
+    console.log(`❌ 加注增量低于最小要求: ${raiseIncrement} < ${minRaise.value}`)
+    statusMessage.value = `加注增量至少为 ${minRaise.value}，或者全下`
+    return false
+  }
+  
+  // 检查筹码是否足够
+  if (playerChips.value < raiseAmount.value) {
+    console.log('❌ 筹码不足，无法加注')
+    statusMessage.value = '筹码不足，无法加注'
+    return false
+  }
+  
+  // 检查游戏状态
+  if (!gameStarted.value || gameEnded) {
+    console.log('❌ 游戏状态异常，无法加注')
+    return false
+  }
+  
+  // 计算总下注金额（当前下注 + 加注增量）
+  const totalBetAmount = playerBet.value + raiseAmount.value
+  const result = gameFinance.playerRaise(totalBetAmount)
+
+  if (!result.success) {
+    statusMessage.value = result.message
+    return false
+  }
+
+  statusMessage.value = result.message
+  playerTurn.value = false
+
+  // 延迟处理AI行动
+  setTimeout(() => {
+    executeOpponentAction()
+  }, 1000)
+  
+  return true
+}
 
   // 处理下一步行动的统一逻辑
   const processNextAction = () => {
@@ -319,37 +449,68 @@ export function createGameLogic(gameState) {
   }
 
   // 生成AI决策
-  const makeAIDecision = () => {
-    try {
-      const gameStateForAI = {
-        playerCards: playerCards.value,
-        opponentCards: opponentCards.value,
-        communityCards: communityCards.value,
-        gameStage: gameStage.value,
-        pot: pot.value,
-        playerBet: playerBet.value,
-        opponentBet: opponentBet.value,
-        playerChips: playerChips.value,
-        opponentChips: opponentChips.value,
-        callAmount: callAmount.value,
-        minRaise: gameFinance.minRaise
-      }
-
-      return aiEngine.makeDecision(gameStateForAI)
-    } catch (error) {
-      console.error('AI决策失败:', error)
-      // 返回默认的保守决策
+const makeAIDecision = () => {
+  try {
+    // 验证基础数据
+    if (!playerCards.value || playerCards.value.length !== 2) {
+      console.error('❌ 玩家手牌数据异常')
+      return { action: 'check', reasoning: '数据异常', confidence: 0.3, debugInfo: {} }
+    }
+    
+    if (!opponentCards.value || opponentCards.value.length !== 2) {
+      console.error('❌ AI手牌数据异常')
+      return { action: 'check', reasoning: '数据异常', confidence: 0.3, debugInfo: {} }
+    }
+    
+    const gameStateForAI = {
+      playerCards: playerCards.value,
+      opponentCards: opponentCards.value,
+      communityCards: communityCards.value,
+      gameStage: gameStage.value,
+      pot: pot.value,
+      playerBet: playerBet.value,
+      opponentBet: opponentBet.value,
+      playerChips: playerChips.value,
+      opponentChips: opponentChips.value,
+      callAmount: callAmount.value,
+      minRaise: gameFinance.minRaise
+    }
+    
+    // 验证游戏状态
+    if (!gameStateForAI.gameStage || 
+        gameStateForAI.playerChips < 0 || 
+        gameStateForAI.opponentChips < 0 ||
+        gameStateForAI.pot < 0) {
+      console.error('❌ 游戏状态异常，AI使用默认决策')
       return {
         action: 'check',
-        reasoning: '保守策略',
-        confidence: 0.5,
+        reasoning: '游戏状态异常',
+        confidence: 0.3,
         debugInfo: {}
       }
     }
+
+    return aiEngine.makeDecision(gameStateForAI)
+  } catch (error) {
+    console.error('AI决策失败:', error)
+    // 返回默认的保守决策
+    return {
+      action: 'check',
+      reasoning: '决策失败，使用保守策略',
+      confidence: 0.3,
+      debugInfo: {}
+    }
   }
+}
 
   // 执行AI行动
   const executeAIAction = (aiDecision) => {
+    if (!aiDecision || !aiDecision.action) {
+      console.error('❌ AI决策无效')
+      isProcessingAction = false
+      return
+    }
+    
     console.log('🤖 AI行动:', aiDecision.action)
 
     // 保存调试信息
@@ -367,20 +528,26 @@ export function createGameLogic(gameState) {
     }
 
     // 根据AI决策执行行动
-    switch (aiDecision.action) {
-      case 'fold':
-        handleAIFold(aiDecision)
-        break
-      case 'call':
-        handleAICall(aiDecision)
-        break
-      case 'raise':
-        handleAIRaise(aiDecision)
-        break
-      case 'check':
-      default:
-        handleAICheck(aiDecision)
-        break
+    try {
+      switch (aiDecision.action) {
+        case 'fold':
+          handleAIFold(aiDecision)
+          break
+        case 'call':
+          handleAICall(aiDecision)
+          break
+        case 'raise':
+          handleAIRaise(aiDecision)
+          break
+        case 'check':
+        default:
+          handleAICheck(aiDecision)
+          break
+      }
+    } catch (error) {
+      console.error('❌ AI行动执行失败:', error)
+      isProcessingAction = false
+      statusMessage.value = 'AI行动失败，请重新开始'
     }
   }
 
@@ -453,8 +620,10 @@ export function createGameLogic(gameState) {
 
   // AI加注
   const handleAIRaise = (aiDecision) => {
-    console.log('🤖 AI加注:', aiDecision.amount)
-    const result = gameFinance.opponentRaise(aiDecision.amount)
+    console.log('🤖 AI加注增量:', aiDecision.amount)
+    // aiDecision.amount 现在是加注增量，需要计算总下注金额
+    const totalBetAmount = opponentBet.value + aiDecision.amount
+    const result = gameFinance.opponentRaise(totalBetAmount)
 
     if (result.success) {
       statusMessage.value = `${result.message} (${aiDecision.reasoning})`
@@ -552,84 +721,84 @@ export function createGameLogic(gameState) {
   }
 
   // 处理摊牌
-  const handleShowdown = () => {
-    console.log('🎭 开始摊牌')
-    showdown.value = true
-    gameEnded = true
+const handleShowdown = () => {
+  console.log('🎭 开始摊牌')
+  showdown.value = true
+  gameEnded = true
 
-    try {
-      // 计算牌力
-      const playerHand = [...playerCards.value, ...communityCards.value]
-      const opponentHand = [...opponentCards.value, ...communityCards.value]
+  try {
+    // 计算牌力
+    const playerHand = [...playerCards.value, ...communityCards.value]
+    const opponentHand = [...opponentCards.value, ...communityCards.value]
 
-      console.log('玩家手牌:', playerCards.value)
-      console.log('电脑手牌:', opponentCards.value)
-      console.log('公共牌:', communityCards.value)
+    console.log('玩家手牌:', playerCards.value)
+    console.log('电脑手牌:', opponentCards.value)
+    console.log('公共牌:', communityCards.value)
 
-      const playerHandRank = evaluateHand(playerHand)
-      const opponentHandRank = evaluateHand(opponentHand)
+    const playerHandRank = evaluateHand(playerHand)
+    const opponentHandRank = evaluateHand(opponentHand)
 
-      console.log('玩家牌力:', playerHandRank)
-      console.log('电脑牌力:', opponentHandRank)
+    console.log('玩家牌力:', playerHandRank)
+    console.log('电脑牌力:', opponentHandRank)
 
-      // 显示对手的牌
-      showOpponentCards.value = true
+    // 显示对手的牌
+    showOpponentCards.value = true
 
-      // 比较牌力并确定胜负
-      const winner = determineWinner(playerHandRank, opponentHandRank)
+    // 比较牌力并确定胜负
+    const winner = determineWinner(playerHandRank, opponentHandRank)
 
-      // 记录分配前的筹码总数用于验证
-      const totalChipsBefore = gameFinance.playerChips + gameFinance.opponentChips + gameFinance.pot
-      console.log('🔍 分配前筹码总数:', totalChipsBefore)
+    // 记录分配前的筹码总数用于验证
+    const totalChipsBefore = gameFinance.playerChips + gameFinance.opponentChips + gameFinance.pot
+    console.log('🔍 分配前筹码总数:', totalChipsBefore)
 
-      // 分配底池
-      gameFinance.distributePot(winner)
+    // 分配底池
+    gameFinance.distributePot(winner)
 
-      // 验证筹码守恒
-      const totalChipsAfter = gameFinance.playerChips + gameFinance.opponentChips
-      console.log('🔍 分配后筹码总数:', totalChipsAfter)
-      if (totalChipsBefore !== totalChipsAfter) {
-        console.error('⚠️ 筹码总数不守恒！', { before: totalChipsBefore, after: totalChipsAfter })
-      }
-
-      // 检查是否有玩家筹码为0，如果有则游戏结束
-      if (playerChips.value <= 0) {
-        console.log('🏆 玩家筹码为0，游戏结束')
-        statusMessage.value = '😔 你的筹码不足，游戏结束！电脑获胜！'
-        // 不开始新一局，游戏结束
-        setTimeout(() => {
-          isProcessingAction = false
-          // 可以在这里添加重新开始游戏的选项
-        }, 3000)
-        return
-      }
-      
-      if (opponentChips.value <= 0) {
-        console.log('🏆 AI筹码为0，游戏结束')
-        statusMessage.value = '🎉 电脑筹码不足，游戏结束！你获胜！'
-        // 不开始新一局，游戏结束
-        setTimeout(() => {
-          isProcessingAction = false
-          // 可以在这里添加重新开始游戏的选项
-        }, 3000)
-        return
-      }
-
-      // 3秒后开始新一局
-      setTimeout(() => {
-        isProcessingAction = false
-        startNewRound()
-      }, 3000)
-
-    } catch (error) {
-      console.error('摊牌过程出错:', error)
-      statusMessage.value = '摊牌出错，重新开始游戏'
-      setTimeout(() => {
-        isProcessingAction = false
-        startNewRound()
-      }, 2000)
+    // 验证筹码守恒
+    const totalChipsAfter = gameFinance.playerChips + gameFinance.opponentChips
+    console.log('🔍 分配后筹码总数:', totalChipsAfter)
+    if (totalChipsBefore !== totalChipsAfter) {
+      console.error('⚠️ 筹码总数不守恒！', { before: totalChipsBefore, after: totalChipsAfter })
     }
+
+    // 检查是否有玩家筹码为0，如果有则游戏结束
+    if (playerChips.value <= 0) {
+      console.log('🏆 玩家筹码为0，游戏结束')
+      statusMessage.value = '😔 你的筹码不足，游戏结束！电脑获胜！'
+      // 不开始新一局，游戏结束
+      setTimeout(() => {
+        isProcessingAction = false
+        // 可以在这里添加重新开始游戏的选项
+      }, 3000)
+      return
+    }
+    
+    if (opponentChips.value <= 0) {
+      console.log('🏆 AI筹码为0，游戏结束')
+      statusMessage.value = '🎉 电脑筹码不足，游戏结束！你获胜！'
+      // 不开始新一局，游戏结束
+      setTimeout(() => {
+        isProcessingAction = false
+        // 可以在这里添加重新开始游戏的选项
+      }, 3000)
+      return
+    }
+
+    // 3秒后开始新一局
+    setTimeout(() => {
+      isProcessingAction = false
+      startNewRound()
+    }, 3000)
+
+  } catch (error) {
+    console.error('摊牌过程出错:', error)
+    statusMessage.value = '摊牌出错，重新开始游戏'
+    setTimeout(() => {
+      isProcessingAction = false
+      startNewRound()
+    }, 2000)
   }
+}
 
   // 确定胜负
   const determineWinner = (playerHandRank, opponentHandRank) => {
@@ -670,15 +839,15 @@ export function createGameLogic(gameState) {
   }
 
   // AI行动入口函数
-  const opponentAction = () => {
-    if (isProcessingAction || gameEnded) {
-      console.log('⚠️ 正在处理行动或游戏已结束，跳过AI行动')
-      return
-    }
-    
-    isProcessingAction = true
-    executeOpponentAction()
+const opponentAction = () => {
+  if (isProcessingAction || gameEnded) {
+    console.log('⚠️ 正在处理行动或游戏已结束，跳过AI行动')
+    return
   }
+  
+  isProcessingAction = true
+  executeOpponentAction()
+}
 
   return {
     startGame,
