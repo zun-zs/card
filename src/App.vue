@@ -1,55 +1,61 @@
 <template>
   <div class="poker-game">
-    <h1 class="game-title">🃏 德州扑克</h1>
-
     <div v-if="!gameStarted" class="start-screen">
+      <h1 class="game-title">🃏 德州扑克</h1>
       <button @click="startGame" class="start-button">开始游戏</button>
     </div>
 
-    <div v-if="gameStarted" class="game-container">
-      <!-- 游戏控制面板 -->
-      <GameControls
-        :ai-difficulty="aiDifficulty"
-        :available-difficulties="availableDifficulties"
-        :show-g-t-o-debug="showGTODebug"
-        @reset-game="resetGame"
-        @toggle-gto-debug="toggleGTODebug"
-        @set-ai-difficulty="setAIDifficulty"
-      />
+    <div v-else class="game-layout">
+      <!-- 顶部控制栏 -->
+      <header class="game-header">
+        <h1 class="game-title-small">🃏 德州扑克</h1>
+        <GameControls
+          :ai-difficulty="aiDifficulty"
+          :available-difficulties="availableDifficulties"
+          :show-g-t-o-debug="showGTODebug"
+          @reset-game="resetGame"
+          @toggle-gto-debug="toggleGTODebug"
+          @set-ai-difficulty="setAIDifficulty"
+        />
+      </header>
 
-      <!-- 游戏桌面 -->
-      <GameTable
-        :community-cards="communityCards"
-        :opponent-chips="opponentChips"
-        :opponent-bet="opponentBet"
-        :opponent-cards="opponentCards"
-        :showdown="showdown"
-        :pot="pot"
-        :status-message="statusMessage"
-        :player-chips="playerChips"
-        :player-bet="playerBet"
-        :player-cards="playerCards"
-        :player-win-rate="playerWinRate"
-        :hand-strength="handStrength"
-        :player-turn="playerTurn"
-        :game-started="gameStarted"
-        :can-check="canCheck"
-        :can-call="canCall"
-        :call-amount="callAmount"
-        :min-raise="minRaise"
-        :raise-amount="raiseAmount"
-        @player-action="playerAction"
-        @update-raise-amount="updateRaiseAmount"
-        @set-quick-raise="setQuickRaise"
-      />
+      <!-- 主游戏区域 -->
+      <main class="game-main">
+        <!-- 游戏桌面 -->
+        <GameTable
+          :community-cards="communityCards"
+          :opponent-chips="opponentChips"
+          :opponent-bet="opponentBet"
+          :opponent-cards="opponentCards"
+          :showdown="showdown"
+          :pot="pot"
+          :status-message="statusMessage"
+          :player-chips="playerChips"
+          :player-bet="playerBet"
+          :player-cards="playerCards"
+          :player-win-rate="playerWinRate"
+          :hand-strength="handStrength"
+          :player-turn="playerTurn"
+          :game-started="gameStarted"
+          :can-check="canCheck"
+          :can-call="canCall"
+          :call-amount="callAmount"
+          :min-raise="minRaise"
+          :raise-amount="raiseAmount"
+          @player-action="playerAction"
+          @update-raise-amount="updateRaiseAmount"
+          @set-quick-raise="setQuickRaise"
+        />
 
-      <!-- AI调试面板 -->
-      <AIDebugPanel
-        v-if="showGTODebug"
-        :show-g-t-o-debug="showGTODebug"
-        :gto-debug-info="gtoDebugInfo"
-        :ai-engine-name="aiEngine?.config?.name || 'AI引擎'"
-      />
+        <!-- AI调试面板 - 侧边显示 -->
+        <aside v-if="showGTODebug" class="debug-sidebar">
+          <AIDebugPanel
+            :show-g-t-o-debug="showGTODebug"
+            :gto-debug-info="gtoDebugInfo"
+            :ai-engine-name="aiEngine?.config?.name || 'AI引擎'"
+          />
+        </aside>
+      </main>
     </div>
   </div>
 </template>

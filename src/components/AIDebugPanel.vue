@@ -64,30 +64,27 @@ export default {
 
 <style scoped>
 .gto-debug-panel {
-  background: linear-gradient(135deg, #2d3436, #636e72) !important;
-  border-radius: 10px !important;
-  padding: 10px !important;
-  margin-top: 8px !important;
-  color: white !important;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  max-height: 200px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(26, 31, 53, 0.95), rgba(42, 49, 80, 0.95));
+  border-radius: 10px;
+  border: 1px solid rgba(74, 158, 255, 0.3);
+  color: white;
+  height: 100%;
   overflow-y: auto;
 }
 
 .gto-debug-panel h3 {
   margin: 0 0 10px 0;
   text-align: center;
-  color: #74b9ff;
-  font-size: 0.95rem;
+  color: #4a9eff;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .debug-info {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  grid-template-columns: 1fr 1fr;
 }
 
 .debug-row {
@@ -95,50 +92,53 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 5px 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(74, 158, 255, 0.1);
   border-radius: 5px;
+  border: 1px solid rgba(74, 158, 255, 0.15);
+  font-size: 0.75rem;
   transition: background 0.2s ease;
 }
 
 .debug-row:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(74, 158, 255, 0.2);
 }
 
 .label {
   font-weight: 600;
-  color: #ddd;
+  color: #b8c5d6;
   min-width: 70px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .value {
-  font-weight: 500;
+  font-weight: 600;
   text-align: right;
   flex: 1;
   font-size: 0.75rem;
+  color: #fff;
 }
 
 .positive {
-  color: #00b894;
+  color: #4ade80;
 }
 
 .negative {
-  color: #e17055;
+  color: #f87171;
 }
 
 .bluff {
-  color: #fdcb6e;
+  color: #fbbf24;
   font-weight: bold;
 }
 
 .action {
-  color: #74b9ff;
+  color: #a78bfa;
   font-weight: bold;
   text-transform: uppercase;
 }
 
 .reasoning {
-  color: #a29bfe;
+  color: #f39c12;
   font-style: italic;
   max-width: 150px;
   word-wrap: break-word;
@@ -146,35 +146,15 @@ export default {
 }
 
 .confidence {
-  color: #fd79a8;
+  color: #27ae60;
   font-weight: bold;
 }
 
 .no-debug-info {
   text-align: center;
-  color: #b2bec3;
+  color: rgba(255, 255, 255, 0.5);
   font-style: italic;
   padding: 15px;
-  font-size: 0.85rem;
-}
-
-@media (max-width: 768px) {
-  .debug-info {
-    grid-template-columns: 1fr;
-  }
-  
-  .debug-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
-  }
-  
-  .label {
-    min-width: auto;
-  }
-  
-  .value {
-    text-align: left;
-  }
+  font-size: 0.8rem;
 }
 </style>
