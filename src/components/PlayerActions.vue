@@ -3,17 +3,17 @@
     <button @click="$emit('player-action', 'fold')" class="action-button fold" :disabled="!playerTurn">弃牌</button>
     <button @click="$emit('player-action', 'check')" class="action-button check" :disabled="!canCheck || !playerTurn">看牌</button>
     <button @click="$emit('player-action', 'call')" class="action-button call" :disabled="!canCall || !playerTurn">跟注 ({{ callAmount }})</button>
-    
+
     <div class="raise-container">
       <button @click="$emit('player-action', 'raise')" class="action-button raise" :disabled="playerChips <= callAmount || !playerTurn">加注</button>
       <div class="raise-controls">
-        <input 
-          type="range" 
-          :value="raiseAmount" 
+        <input
+          type="range"
+          :value="raiseAmount"
           @input="$emit('update-raise-amount', $event.target.value)"
-          :min="minRaise" 
-          :max="playerChips" 
-          :disabled="playerChips <= callAmount || !playerTurn" 
+          :min="minRaise"
+          :max="playerChips"
+          :disabled="playerChips <= callAmount || !playerTurn"
         />
         <span>{{ raiseAmount }}</span>
         <div class="quick-raise-buttons">
@@ -28,41 +28,41 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'PlayerActions',
-  props: {
-    canCheck: Boolean,
-    canCall: Boolean,
-    callAmount: Number,
-    playerChips: Number,
-    minRaise: Number,
-    raiseAmount: Number,
-    playerTurn: Boolean
-  },
-  emits: ['player-action', 'update-raise-amount', 'set-quick-raise']
-}
+<script setup>
+defineProps({
+  canCheck: Boolean,
+  canCall: Boolean,
+  callAmount: Number,
+  playerChips: Number,
+  minRaise: Number,
+  raiseAmount: Number,
+  playerTurn: Boolean
+})
+
+defineEmits(['player-action', 'update-raise-amount', 'set-quick-raise'])
 </script>
 
 <style scoped>
 .player-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(66px, 1fr));
+  gap: 6px;
   justify-content: center;
+  width: 100%;
   flex-shrink: 0;
   margin-top: auto;
 }
 
 .action-button {
-  padding: 5px 10px;
+  padding: 6px 8px;
   border: none;
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.8rem;
-  min-width: 55px;
+  font-size: 0.75rem;
+  min-width: 60px;
+  width: 100%;
 }
 
 .action-button:hover:not(:disabled) {
@@ -97,39 +97,43 @@ export default {
 }
 
 .raise-container {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
   width: 100%;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .raise-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
   align-items: center;
 }
 
 .raise-controls input[type="range"] {
   width: 100%;
-  max-width: 200px;
+  max-width: 220px;
   height: 3px;
 }
 
 .raise-controls span {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: bold;
 }
 
 .quick-raise-buttons {
-  display: flex;
-  gap: 3px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(52px, 1fr));
+  gap: 4px;
   justify-content: center;
 }
 
 .quick-raise-button {
-  padding: 3px 6px;
+  padding: 4px 6px;
   border: none;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.2);
@@ -141,7 +145,7 @@ export default {
 
 .quick-raise-button:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 .quick-raise-button:disabled {

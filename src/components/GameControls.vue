@@ -23,16 +23,13 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'GameControls',
-  props: {
-    showGTODebug: Boolean,
-    aiDifficulty: String,
-    availableDifficulties: Array
-  },
-  emits: ['reset-game', 'toggle-gto-debug', 'set-ai-difficulty']
-}
+<script setup>
+defineProps({
+  showGTODebug: Boolean,
+  aiDifficulty: String,
+  availableDifficulties: Array
+})
+defineEmits(['reset-game', 'toggle-gto-debug', 'set-ai-difficulty'])
 </script>
 
 <style scoped>
@@ -40,23 +37,23 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
+   gap: 8px;
+   padding: 6px 8px;
   border-radius: 10px;
   backdrop-filter: blur(10px);
   flex-wrap: wrap;
 }
 
 .control-button {
-  padding: 6px 15px;
-  border: none;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 6px 12px;
+   border: none;
+   border-radius: 6px;
+   background: linear-gradient(135deg, #4a9eff, #8b5cf6);
   color: white;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.85rem;
+   font-size: 0.8rem;
 }
 
 .control-button:hover {
@@ -71,22 +68,22 @@ export default {
 .difficulty-selector {
   display: flex;
   align-items: center;
-  gap: 8px;
+   gap: 6px;
   color: white;
   font-weight: 500;
-  font-size: 0.85rem;
+   font-size: 0.8rem;
 }
 
 .difficulty-select {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+   border: none;
+   border-radius: 4px;
+   background: rgba(255, 255, 255, 0.9);
   color: #333;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.85rem;
+   font-size: 0.8rem;
 }
 
 .difficulty-select:hover {

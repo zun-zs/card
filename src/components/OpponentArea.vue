@@ -16,21 +16,15 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import Card from './Card.vue'
 
-export default {
-  name: 'OpponentArea',
-  components: {
-    Card
-  },
-  props: {
-    opponentChips: Number,
-    opponentBet: Number,
-    opponentCards: Array,
-    showdown: Boolean
-  }
-}
+defineProps({
+  opponentChips: Number,
+  opponentBet: Number,
+  opponentCards: Array,
+  showdown: Boolean
+})
 </script>
 
 <style scoped>
@@ -38,25 +32,25 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 15px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
   width: 100%;
-  max-width: 350px;
+  max-width: 100%;
 }
 
 .opponent h3 {
   margin: 0 0 8px 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #b8c5d6;
 }
 
 .player-info {
   display: flex;
-  gap: 15px;
-  margin-bottom: 8px;
-  font-size: 0.8rem;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
 }
 
 .chips {
@@ -80,6 +74,6 @@ export default {
 .cards-container {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 </style>

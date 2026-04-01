@@ -1,7 +1,8 @@
 import { ref, computed } from 'vue'
-import { createDeck, shuffleDeck, dealCards, calculateWinRate, getHandStrength } from './cardUtils.js'
-import { AdvancedAIEngine } from './aiEngine.js'
-import { gameFinance } from './gameFinance.js'
+import { getOpponentAction } from './gameController.js'
+import { createDeck, shuffleDeck, dealCards, calculateWinRate, getHandStrength } from '../composables/useDeck.js'
+import { AdvancedAIEngine } from '../composables/useAI.js'
+import { financeState, gameFinance } from '../composables/useFinance.js'
 
 export function createGameState() {
   // AI引擎初始化
@@ -28,23 +29,10 @@ export function createGameState() {
   // 加注金额（UI控制）
   const raiseAmount = ref(20)
 
-  // 响应式触发器 - 用于强制更新财务状态
-  const financeUpdateTrigger = ref(0)
-
-  // 强制更新财务状态的方法
-  const updateFinanceState = () => {
-    financeUpdateTrigger.value++
-  }
-
-  // 将更新方法暴露给gameFinance
-  gameFinance.updateUI = updateFinanceState
-
-  // 计算属性 - 基于金融模块
-  const financeState = computed(() => {
-    // 依赖触发器来强制重新计算
-    financeUpdateTrigger.value
-    return gameFinance.getState()
-  })
+  // 使用 useFinance 暴露的响应式金融状态
+  // `gameFinance.updateUI` 已由 `useFinance` 管理
+  // 计算属性 - 基于金融模块（来自 useFinance.financeState）
+  
 
   const callAmount = computed(() => financeState.value.callAmount)
   const canCheck = computed(() => financeState.value.canCheck)
@@ -105,7 +93,7 @@ export function createGameState() {
       console.log('🔍 重置后筹码总数:', totalChipsAfter)
       const expectedAfter = totalChipsBefore // 盲注收取不应改变总数
       if (totalChipsAfter !== expectedAfter) {
-        console.error('⚠️ 重置时筹码总数不守恒！', { before: totalChipsBefore, after: totalChipsAfter, expected: expectedAfter })
+        console.warn('⚠️ 重置时筹码总数不守恒！', { before: totalChipsBefore, after: totalChipsAfter, expected: expectedAfter })
       }
     }
 
@@ -127,12 +115,10 @@ export function createGameState() {
       statusMessage.value = '轮到你行动'
     } else {
       statusMessage.value = '等待电脑行动'
-      // 如果AI先行动，延迟触发AI行动
+      // 如果AI先行动，延迟触发AI行动（通过 gameController 获取）
       setTimeout(() => {
-        // 需要从外部传入opponentAction函数
-        if (window.gameLogic && window.gameLogic.opponentAction) {
-          window.gameLogic.opponentAction()
-        }
+        const opt = getOpponentAction()
+        if (typeof opt === 'function') opt()
       }, 1000)
     }
 

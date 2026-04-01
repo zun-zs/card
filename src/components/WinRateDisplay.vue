@@ -13,27 +13,24 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'WinRateDisplay',
-  props: {
-    playerWinRate: {
-      type: Object,
-      required: true
-    },
-    handStrength: {
-      type: String,
-      required: true
-    }
+<script setup>
+defineProps({
+  playerWinRate: {
+    type: Object,
+    required: true
+  },
+  handStrength: {
+    type: String,
+    required: true
   }
-}
+})
 </script>
 
 <style scoped>
 .win-rate-info {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  padding: 6px;
+  border-radius: 8px;
+  padding: 6px 8px;
   margin-bottom: 6px;
   backdrop-filter: blur(10px);
   flex-shrink: 0;
@@ -45,17 +42,17 @@ export default {
   justify-content: center;
   gap: 5px;
   margin-bottom: 4px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: bold;
 }
 
 .win-rate-label {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .win-rate-value {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   padding: 2px 6px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.2);
@@ -87,14 +84,14 @@ export default {
 }
 
 .hand-strength {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.7);
 }
 
 .detailed-rates {
   display: flex;
   justify-content: space-around;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   gap: 3px;
 }
 

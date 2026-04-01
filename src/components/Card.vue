@@ -32,65 +32,53 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { computed } from 'vue'
 
-export default {
-  name: 'Card',
-  props: {
-    card: {
-      type: Object,
-      required: true
-    },
-    hidden: {
-      type: Boolean,
-      default: false
-    }
+const props = defineProps({
+  card: {
+    type: Object,
+    required: true
   },
-  setup(props) {
-    const suitSymbol = computed(() => {
-      switch (props.card.suit) {
-        case 'hearts': return '♥'
-        case 'diamonds': return '♦'
-        case 'clubs': return '♣'
-        case 'spades': return '♠'
-        default: return ''
-      }
-    })
-    
-    const suitClass = computed(() => {
-      return `suit-${props.card.suit}`
-    })
-    
-    const cardColor = computed(() => {
-      return ['hearts', 'diamonds'].includes(props.card.suit) ? 'red' : 'black'
-    })
-    
-    const displayRank = computed(() => {
-      switch (props.card.rank) {
-        case '1': return 'A'
-        case '11': return 'J'
-        case '12': return 'Q'
-        case '13': return 'K'
-        default: return props.card.rank
-      }
-    })
-    
-    const isNumber = computed(() => {
-      return !isNaN(Number(props.card.rank)) && 
-             Number(props.card.rank) >= 2 && 
-             Number(props.card.rank) <= 10
-    })
-    
-    return {
-      suitSymbol,
-      suitClass,
-      cardColor,
-      displayRank,
-      isNumber
-    }
+  hidden: {
+    type: Boolean,
+    default: false
   }
-}
+})
+
+const suitSymbol = computed(() => {
+  switch (props.card.suit) {
+    case 'hearts': return '♥'
+    case 'diamonds': return '♦'
+    case 'clubs': return '♣'
+    case 'spades': return '♠'
+    default: return ''
+  }
+})
+
+const suitClass = computed(() => {
+  return `suit-${props.card.suit}`
+})
+
+const cardColor = computed(() => {
+  return ['hearts', 'diamonds'].includes(props.card.suit) ? 'red' : 'black'
+})
+
+const displayRank = computed(() => {
+  switch (props.card.rank) {
+    case '1': return 'A'
+    case '11': return 'J'
+    case '12': return 'Q'
+    case '13': return 'K'
+    default: return props.card.rank
+  }
+})
+
+const isNumber = computed(() => {
+  return !isNaN(Number(props.card.rank)) && 
+         Number(props.card.rank) >= 2 && 
+         Number(props.card.rank) <= 10
+})
 </script>
 
 <style scoped>

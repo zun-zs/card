@@ -1,5 +1,8 @@
-import { evaluateHand, getBestHand, compareHands } from './cardUtils.js'
-import { gameFinance } from './gameFinance.js'
+import { evaluateHand } from '../composables/useDeck.js'
+import { gameFinance } from '../composables/useFinance.js'
+import { addTimeout, clearTimeouts } from './gameController.js'
+import { makeDecisionSafe } from '../composables/useAI.js'
+import { createRoundHelpers } from '../composables/useRound.js'
 
 export function createGameLogic(gameState) {
   const {
@@ -47,7 +50,7 @@ export function createGameLogic(gameState) {
       // 推进金融模块的阶段（包含重置下注状态和更新currentStage）
       gameFinance.advanceStage()
 
-      // 发公共牌
+      // 发公共牌（委托给 useRound）
       dealCommunityCards(gameStage.value)
 
       // 设置行动权（通常小盲注先行动）
@@ -58,6 +61,9 @@ export function createGameLogic(gameState) {
 
     return 'showdown'
   }
+
+  // 从 useRound 创建阶段辅助函数
+  const { dealCommunityCards, determineWinner } = createRoundHelpers(gameState)
 
   // 开始游戏
   const startGame = () => {
@@ -80,14 +86,9 @@ export function createGameLogic(gameState) {
   const resetGame = () => {
     console.log('🔄 重置游戏')
 
-    // 清理所有pending的timeout
-    if (window.gameTimeouts) {
-      window.gameTimeouts.forEach(timeoutId => {
-        clearTimeout(timeoutId)
-      })
-      window.gameTimeouts = []
-      console.log('🧹 已清理所有timeout')
-    }
+    // 清理所有 pending 的 timeout
+    clearTimeouts()
+    console.log('🧹 已清理所有 timeout')
 
     gameEnded = false
     isProcessingAction = false
@@ -99,13 +100,8 @@ export function createGameLogic(gameState) {
   const startNewRound = () => {
     console.log('🎯 开始新一局')
 
-    // 清理所有pending的timeout
-    if (window.gameTimeouts) {
-      window.gameTimeouts.forEach(timeoutId => {
-        clearTimeout(timeoutId)
-      })
-      window.gameTimeouts = []
-    }
+    // 清理所有 pending 的 timeout
+    clearTimeouts()
 
     gameEnded = false
     isProcessingAction = false
@@ -422,7 +418,7 @@ const handlePlayerRaise = () => {
     }
 
     console.log('🤖 AI开始思考...')
-    gameState.statusMessage = '电脑正在思考...'
+    statusMessage.value = '电脑正在思考...'
 
     // 延迟AI决策，增加真实感
     const aiThinkingTimeout = setTimeout(() => {
@@ -439,13 +435,12 @@ const handlePlayerRaise = () => {
       } catch (error) {
         console.error('❌ AI决策失败:', error)
         isProcessingAction = false
-        gameState.statusMessage = 'AI决策出错，请重新开始游戏'
+        statusMessage.value = 'AI决策出错，请重新开始游戏'
       }
     }, 1000) // 减少延迟时间
 
-    // 存储timeout ID以便可能的清理
-    if (!window.gameTimeouts) window.gameTimeouts = []
-    window.gameTimeouts.push(aiThinkingTimeout)
+    // 存储 timeout ID 以便后续清理
+    addTimeout(aiThinkingTimeout)
   }
 
   // 生成AI决策
@@ -490,7 +485,7 @@ const makeAIDecision = () => {
       }
     }
 
-    return aiEngine.makeDecision(gameStateForAI)
+    return makeDecisionSafe(aiEngine, gameStateForAI)
   } catch (error) {
     console.error('AI决策失败:', error)
     // 返回默认的保守决策
@@ -621,15 +616,15 @@ const makeAIDecision = () => {
   // AI加注
   const handleAIRaise = (aiDecision) => {
     console.log('🤖 AI加注增量:', aiDecision.amount)
-    // aiDecision.amount 现在是加注增量，需要计算总下注金额
-    const totalBetAmount = opponentBet.value + aiDecision.amount
+    // aiDecision.amount 是加注增量，需要加在当前最高下注之上
+    const totalBetAmount = Math.max(opponentBet.value, playerBet.value) + aiDecision.amount
     const result = gameFinance.opponentRaise(totalBetAmount)
 
     if (result.success) {
       statusMessage.value = `${result.message} (${aiDecision.reasoning})`
-      playerTurn.value = true
 
       setTimeout(() => {
+        playerTurn.value = true
         isProcessingAction = false
         statusMessage.value = '轮到你行动'
       }, 1000)
@@ -680,46 +675,6 @@ const makeAIDecision = () => {
   }
 
 
-
-  // 发公共牌
-  const dealCommunityCards = (stage) => {
-    switch (stage) {
-      case 'flop':
-        // 发3张公共牌
-        for (let i = 0; i < 3; i++) {
-          if (deck.value.length > 0) {
-            communityCards.value.push(deck.value.pop())
-          }
-        }
-        statusMessage.value = '翻牌圈开始'
-        console.log('🃏 发出翻牌:', communityCards.value.slice(-3))
-        break
-
-      case 'turn':
-        // 发第4张公共牌
-        if (deck.value.length > 0) {
-          communityCards.value.push(deck.value.pop())
-        }
-        statusMessage.value = '转牌圈开始'
-        console.log('🃏 发出转牌:', communityCards.value.slice(-1))
-        break
-
-      case 'river':
-        // 发第5张公共牌
-        if (deck.value.length > 0) {
-          communityCards.value.push(deck.value.pop())
-        }
-        statusMessage.value = '河牌圈开始'
-        console.log('🃏 发出河牌:', communityCards.value.slice(-1))
-        break
-
-      case 'showdown':
-        statusMessage.value = '摊牌阶段'
-        console.log('🎭 进入摊牌阶段')
-        break
-    }
-  }
-
   // 处理摊牌
 const handleShowdown = () => {
   console.log('🎭 开始摊牌')
@@ -744,8 +699,8 @@ const handleShowdown = () => {
     // 显示对手的牌
     showOpponentCards.value = true
 
-    // 比较牌力并确定胜负
-    const winner = determineWinner(playerHandRank, opponentHandRank)
+    // 比较牌力并确定胜负（委托给 useRound）
+    const winner = determineWinner()
 
     // 记录分配前的筹码总数用于验证
     const totalChipsBefore = gameFinance.playerChips + gameFinance.opponentChips + gameFinance.pot
@@ -800,43 +755,7 @@ const handleShowdown = () => {
   }
 }
 
-  // 确定胜负
-  const determineWinner = (playerHandRank, opponentHandRank) => {
-    let winner
-
-    // 使用新的牌型评估系统
-    const playerAllCards = [...playerCards.value, ...communityCards.value]
-    const opponentAllCards = [...opponentCards.value, ...communityCards.value]
-
-    console.log('玩家所有牌:', playerAllCards)
-    console.log('对手所有牌:', opponentAllCards)
-
-    // 获取最佳牌型
-    const playerBestHand = getBestHand(playerAllCards)
-    const opponentBestHand = getBestHand(opponentAllCards)
-
-    console.log('玩家最佳牌型:', playerBestHand.evaluation)
-    console.log('对手最佳牌型:', opponentBestHand.evaluation)
-
-    // 比较牌型
-    const comparison = compareHands(playerBestHand.cards, opponentBestHand.cards)
-
-    if (comparison > 0) {
-      winner = 'player'
-      statusMessage.value = `🎉 你获胜！${playerBestHand.evaluation.name} 胜过 ${opponentBestHand.evaluation.name}`
-    } else if (comparison < 0) {
-      winner = 'opponent'
-      statusMessage.value = `😔 电脑获胜！${opponentBestHand.evaluation.name} 胜过 ${playerBestHand.evaluation.name}`
-    } else {
-      winner = 'tie'
-      statusMessage.value = `🤝 平局！双方都是${playerBestHand.evaluation.name}`
-    }
-
-    console.log('🏆 胜负结果:', winner)
-    console.log('🏆 比较结果:', comparison)
-
-    return winner
-  }
+  // 胜负判定已移至 `useRound.createRoundHelpers` 中的 `determineWinner`
 
   // AI行动入口函数
 const opponentAction = () => {

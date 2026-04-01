@@ -301,7 +301,9 @@ export function getHandName(value) {
 }
 
 // 计算玩家胜率 (蒙特卡洛模拟)
-export function calculateWinRate(playerCards, communityCards, gameStage, simulations = 1000) {
+// opponentRange 可选：[{cards: [card1, card2], weight: number}]
+// 传入时从范围按权重采样，不传时随机发牌（向后兼容）
+export function calculateWinRate(playerCards, communityCards, gameStage, simulations = 1000, opponentRange = null) {
   if (!playerCards || playerCards.length !== 2) {
     return { winRate: 0, tieRate: 0, loseRate: 0 }
   }
@@ -320,34 +322,71 @@ export function calculateWinRate(playerCards, communityCards, gameStage, simulat
     !knownCards.has(`${card.suit}-${card.rank}`)
   )
 
+  // 如果有范围信息，预处理可用范围组合（排除已知牌）
+  let filteredRange = null
+  let rangeTotalWeight = 0
+  if (opponentRange && opponentRange.length > 0) {
+    filteredRange = opponentRange.filter(combo => {
+      const c1Key = `${combo.cards[0].suit}-${combo.cards[0].rank}`
+      const c2Key = `${combo.cards[1].suit}-${combo.cards[1].rank}`
+      return !knownCards.has(c1Key) && !knownCards.has(c2Key)
+    })
+    rangeTotalWeight = filteredRange.reduce((sum, c) => sum + c.weight, 0)
+    if (rangeTotalWeight === 0) filteredRange = null
+  }
+
   for (let i = 0; i < simulations; i++) {
-    // 洗牌
-    const shuffledDeck = shuffleDeck([...remainingDeck])
-    
-    // 为对手发两张牌
-    const opponentCards = shuffledDeck.splice(0, 2)
-    
-    // 补全公共牌到5张
-    const simulatedCommunityCards = [...communityCards]
-    const cardsNeeded = 5 - communityCards.length
-    if (cardsNeeded > 0) {
-      simulatedCommunityCards.push(...shuffledDeck.splice(0, cardsNeeded))
-    }
-    
-    // 评估双方手牌
-    const playerHandValue = evaluateHand([...playerCards, ...simulatedCommunityCards])
-    const opponentHandValue = evaluateHand([...opponentCards, ...simulatedCommunityCards])
-    
-    // 比较牌型大小
-    const comparison = compareHands([...playerCards, ...simulatedCommunityCards], [...opponentCards, ...simulatedCommunityCards])
-    
-    // 统计结果
-    if (comparison > 0) {
-      wins++
-    } else if (comparison === 0) {
-      ties++
+    let opponentCards
+
+    if (filteredRange) {
+      // 从范围按权重采样
+      let rand = Math.random() * rangeTotalWeight
+      let chosen = filteredRange[0]
+      for (const combo of filteredRange) {
+        rand -= combo.weight
+        if (rand <= 0) { chosen = combo; break }
+      }
+      opponentCards = chosen.cards
+
+      // 构建排除对手牌后的牌组用于补全公共牌
+      const oppKeys = new Set([
+        `${opponentCards[0].suit}-${opponentCards[0].rank}`,
+        `${opponentCards[1].suit}-${opponentCards[1].rank}`
+      ])
+      const deckForCommunity = remainingDeck.filter(c => !oppKeys.has(`${c.suit}-${c.rank}`))
+      const shuffledDeck = shuffleDeck([...deckForCommunity])
+
+      const simulatedCommunityCards = [...communityCards]
+      const cardsNeeded = 5 - communityCards.length
+      if (cardsNeeded > 0) {
+        simulatedCommunityCards.push(...shuffledDeck.splice(0, cardsNeeded))
+      }
+
+      const comparison = compareHands(
+        [...playerCards, ...simulatedCommunityCards],
+        [...opponentCards, ...simulatedCommunityCards]
+      )
+      if (comparison > 0) wins++
+      else if (comparison === 0) ties++
+      else losses++
     } else {
-      losses++
+      // 原始逻辑：随机发牌
+      const shuffledDeck = shuffleDeck([...remainingDeck])
+      opponentCards = shuffledDeck.splice(0, 2)
+
+      const simulatedCommunityCards = [...communityCards]
+      const cardsNeeded = 5 - communityCards.length
+      if (cardsNeeded > 0) {
+        simulatedCommunityCards.push(...shuffledDeck.splice(0, cardsNeeded))
+      }
+
+      const comparison = compareHands(
+        [...playerCards, ...simulatedCommunityCards],
+        [...opponentCards, ...simulatedCommunityCards]
+      )
+      if (comparison > 0) wins++
+      else if (comparison === 0) ties++
+      else losses++
     }
   }
 

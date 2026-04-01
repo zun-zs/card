@@ -54,52 +54,46 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import Card from './Card.vue'
 import PlayerArea from './PlayerArea.vue'
 import OpponentArea from './OpponentArea.vue'
 
-export default {
-  name: 'GameTable',
-  components: {
-    Card,
-    PlayerArea,
-    OpponentArea
-  },
-  props: {
-    communityCards: Array,
-    opponentChips: Number,
-    opponentBet: Number,
-    opponentCards: Array,
-    showdown: Boolean,
-    pot: Number,
-    statusMessage: String,
-    playerChips: Number,
-    playerBet: Number,
-    playerCards: Array,
-    playerWinRate: Object,
-    handStrength: String,
-    playerTurn: Boolean,
-    gameStarted: Boolean,
-    canCheck: Boolean,
-    canCall: Boolean,
-    callAmount: Number,
-    minRaise: Number,
-    raiseAmount: Number
-  },
-  emits: ['player-action', 'update-raise-amount', 'set-quick-raise']
-}
+defineProps({
+  communityCards: Array,
+  opponentChips: Number,
+  opponentBet: Number,
+  opponentCards: Array,
+  showdown: Boolean,
+  pot: Number,
+  statusMessage: String,
+  playerChips: Number,
+  playerBet: Number,
+  playerCards: Array,
+  playerWinRate: Object,
+  handStrength: String,
+  playerTurn: Boolean,
+  gameStarted: Boolean,
+  canCheck: Boolean,
+  canCall: Boolean,
+  callAmount: Number,
+  minRaise: Number,
+  raiseAmount: Number
+})
+
+defineEmits(['player-action', 'update-raise-amount', 'set-quick-raise'])
 </script>
 
 <style scoped>
 .game-table {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
   flex: 1;
   min-height: 0;
-  background: radial-gradient(ellipse at center, #1e5631 0%, #0d3d20 100%);
-  border-radius: 20px;
-  padding: 15px;
+  background: radial-gradient(ellipse at center, #1b4a2c 0%, #0d3d20 100%);
+  border-radius: 18px;
+  padding: 12px;
   position: relative;
   overflow: hidden;
 }
@@ -110,9 +104,9 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 90%;
-  height: 85%;
-  border: 3px solid rgba(255, 215, 0, 0.2);
+  width: 92%;
+  height: 86%;
+  border: 2px solid rgba(255, 215, 0, 0.18);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -126,7 +120,7 @@ export default {
 
 .opponent-section {
   flex: 0 0 auto;
-  padding-bottom: 10px;
+  padding-bottom: 4px;
 }
 
 .community-section {
@@ -135,12 +129,12 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 8px;
 }
 
 .player-section {
   flex: 0 0 auto;
-  padding-top: 10px;
+  padding-top: 4px;
 }
 
 .community-cards {
@@ -148,9 +142,9 @@ export default {
 }
 
 .community-cards h3 {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #ffd700;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -160,27 +154,27 @@ export default {
 .cards-container {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .game-status {
   text-align: center;
-  padding: 10px 20px;
-  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.35);
   border-radius: 10px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.25);
 }
 
 .pot {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #ffd700;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .current-action {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.8);
   font-style: italic;
 }

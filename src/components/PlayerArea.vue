@@ -35,35 +35,28 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import Card from './Card.vue'
 import WinRateDisplay from './WinRateDisplay.vue'
 import PlayerActions from './PlayerActions.vue'
 
-export default {
-  name: 'PlayerArea',
-  components: {
-    Card,
-    WinRateDisplay,
-    PlayerActions
-  },
-  props: {
-    playerChips: Number,
-    playerBet: Number,
-    playerCards: Array,
-    playerWinRate: Object,
-    handStrength: String,
-    playerTurn: Boolean,
-    showdown: Boolean,
-    gameStarted: Boolean,
-    canCheck: Boolean,
-    canCall: Boolean,
-    callAmount: Number,
-    minRaise: Number,
-    raiseAmount: Number
-  },
-  emits: ['player-action', 'update-raise-amount', 'set-quick-raise']
-}
+defineProps({
+  playerChips: Number,
+  playerBet: Number,
+  playerCards: Array,
+  playerWinRate: Object,
+  handStrength: String,
+  playerTurn: Boolean,
+  showdown: Boolean,
+  gameStarted: Boolean,
+  canCheck: Boolean,
+  canCall: Boolean,
+  callAmount: Number,
+  minRaise: Number,
+  raiseAmount: Number
+})
+
+defineEmits(['player-action', 'update-raise-amount', 'set-quick-raise'])
 </script>
 
 <style scoped>
@@ -71,25 +64,25 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 15px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
   width: 100%;
-  max-width: 400px;
+  max-width: 100%;
 }
 
 .player h3 {
   margin: 0 0 8px 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #b8c5d6;
 }
 
 .player-info {
   display: flex;
-  gap: 15px;
-  margin-bottom: 8px;
-  font-size: 0.8rem;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
 }
 
 .chips {
@@ -113,7 +106,7 @@ export default {
 .cards-container {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 </style>
